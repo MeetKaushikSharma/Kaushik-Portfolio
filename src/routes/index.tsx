@@ -511,7 +511,7 @@ function Index() {
             asChild
             className="h-12 rounded-none border-current bg-transparent px-6 font-mono text-xs uppercase text-inherit hover:bg-background hover:text-foreground"
           >
-            <a href="https://www.linkedin.com/in/kaushik-sharma" target="_blank" rel="noreferrer">
+            <a href="https://www.linkedin.com/in/meetkaushiksharma" target="_blank" rel="noreferrer">
               <Linkedin /> LinkedIn
             </a>
           </Button>

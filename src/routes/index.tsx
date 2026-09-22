@@ -241,16 +241,16 @@ function Index() {
         </div>
         <div className="dossier-strip">
           {([
-            ["BASE", "NOIDA, INDIA"],
-            ["EDUCATION", "B.TECH / 2028"],
-            ["CGPA", "9.44 / 10"],
-            ["REPOSITORIES", "14 PUBLIC"],
-            ["LEETCODE", <LeetCodeSolvedCount suffix=" SOLVED" />],
+          ["BASE", "NOIDA, INDIA"],
+          ["EDUCATION", "B.TECH / 2028"],
+          ["CGPA", "9.44 / 10"],
+          ["REPOSITORIES", "14 PUBLIC"],
+          ["LEETCODE", <LeetCodeSolvedCount suffix=" SOLVED" />],
           ] satisfies StatRow[]).map(([label, value]) => (
-            <div key={label}>
-              <span>{label}</span>
-              <strong>{value}</strong>
-            </div>
+          <div key={label}>
+            <span>{label}</span>
+            <strong>{value}</strong>
+          </div>
           ))}
         </div>
       </section>
@@ -385,22 +385,20 @@ function Index() {
               ))}
             </div>
           </div>
-          <div>
-            <div className="achievement-detail">
-              <span className="mega-number">{achievements[activeAchievement]?.rank}</span>
-              <p className="font-mono text-xs uppercase">
-                {achievements[activeAchievement]?.date} / {achievements[activeAchievement]?.result}
-              </p>
-              <h3>{achievements[activeAchievement]?.project}</h3>
-              <p>{achievements[activeAchievement]?.detail}</p>
-              <div className="winner-mark">
-                6×
-                <span>
-                  HACKATHON
-                  <br />
-                  WINNER
-                </span>
-              </div>
+          <div className="achievement-detail">
+            <span className="mega-number">{achievements[activeAchievement]?.rank}</span>
+            <p className="font-mono text-xs uppercase">
+              {achievements[activeAchievement]?.date} / {achievements[activeAchievement]?.result}
+            </p>
+            <h3>{achievements[activeAchievement]?.project}</h3>
+            <p>{achievements[activeAchievement]?.detail}</p>
+            <div className="winner-mark">
+              6×
+              <span>
+                HACKATHON
+                <br />
+                WINNER
+              </span>
             </div>
           </div>
         </div>

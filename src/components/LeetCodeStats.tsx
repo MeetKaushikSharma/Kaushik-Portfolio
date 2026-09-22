@@ -1,156 +1,95 @@
 import { useEffect, useState } from "react";
 
-type LeetCodeApiResponse = {
-  totalSolved: number;
-  totalQuestions: number;
-  easySolved: number;
-  totalEasy: number;
-  mediumSolved: number;
-  totalMedium: number;
-  hardSolved: number;
-  totalHard: number;
-  ranking: number;
-};
-
 const LEETCODE_USERNAME = "meetkaushik";
-const LEETCODE_PROFILE_URL = `https://leetcode.com/u/${LEETCODE_USERNAME}/`;
 const STATS_ENDPOINT = `https://leetcode-api-faisalshohag.herokuapp.com/${LEETCODE_USERNAME}`;
+const CACHE_KEY = `lc_solved_${LEETCODE_USERNAME}`;
 
-type Status = "loading" | "success" | "error";
-
-function useCountUp(target: number, durationMs = 1100, active = true) {
-  const [value, setValue] = useState(0);
-
-  useEffect(() => {
-    if (!active) return;
-    let frame: number;
-    const start = performance.now();
-
-    const tick = (now: number) => {
-      const progress = Math.min((now - start) / durationMs, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setValue(Math.round(eased * target));
-      if (progress < 1) frame = requestAnimationFrame(tick);
-    };
-
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [target, durationMs, active]);
-
-  return value;
+function readCache(): number | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(CACHE_KEY);
+    const parsed = raw ? Number(raw) : NaN;
+    return Number.isFinite(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
-function DifficultyBar({
-  label,
-  solved,
-  total,
-}: {
-  label: string;
-  solved: number;
-  total: number;
-}) {
-  const pct = total > 0 ? Math.min(100, (solved / total) * 100) : 0;
-  return (
-    <div className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-wider">
-      <span className="w-14 shrink-0 opacity-60">{label}</span>
-      <div className="h-[3px] flex-1 bg-current/15">
-        <div
-          className="h-full bg-current transition-all duration-700 ease-out"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className="w-16 shrink-0 text-right opacity-70">
-        {solved}/{total}
-      </span>
-    </div>
-  );
+function writeCache(value: number) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CACHE_KEY, String(value));
+  } catch {
+    // ignore storage errors (private mode, quota, etc.)
+  }
 }
 
 /**
- * Live LeetCode counter styled to match the site's brutalist
- * mega-number / section-kicker system used across #achievements.
- * Drop this inside the #achievements section (see index.tsx notes).
+ * Live LeetCode solved-problem count for `meetkaushik`.
+ * No hardcoded seed number: the very first successful fetch a visitor's
+ * browser makes is written to localStorage, and every subsequent load
+ * (for that visitor) shows that cached number instantly while a fresh
+ * fetch runs silently in the background and updates the cache again.
+ * If a fetch ever fails, nothing is overwritten — the last good cached
+ * value simply keeps showing.
  */
-export function LeetCodeStats() {
-  const [status, setStatus] = useState<Status>("loading");
-  const [data, setData] = useState<LeetCodeApiResponse | null>(null);
+export function useLeetCodeSolved(): number | null {
+  const [solved, setSolved] = useState<number | null>(() => readCache());
 
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
-      try {
-        const res = await fetch(STATS_ENDPOINT);
-        if (!res.ok) throw new Error("bad response");
-        const json = (await res.json()) as LeetCodeApiResponse;
-        if (!cancelled) {
-          setData(json);
-          setStatus("success");
+    fetch(STATS_ENDPOINT)
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((json: { totalSolved?: number }) => {
+        if (cancelled) return;
+        if (typeof json.totalSolved === "number" && json.totalSolved > 0) {
+          setSolved(json.totalSolved);
+          writeCache(json.totalSolved);
         }
-      } catch {
-        if (!cancelled) setStatus("error");
-      }
-    }
+      })
+      .catch(() => {
+        // Silent by design: keep showing whatever is cached (or nothing yet).
+      });
 
-    load();
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const solved = useCountUp(data?.totalSolved ?? 0, 1100, status === "success");
+  return solved;
+}
+
+type LeetCodeSolvedCountProps = {
+  className?: string;
+  prefix?: string;
+  suffix?: string;
+  /** Rendered only until the first real number (cached or live) is known. */
+  placeholder?: string;
+};
+
+/**
+ * Drop-in inline number — inherits the caller's typography via
+ * `className`, so it sits directly inside existing stat grids
+ * (mega-number cells, quick-facts rows, etc.) instead of its own card.
+ */
+export function LeetCodeSolvedCount({
+  className,
+  prefix = "",
+  suffix = "",
+  placeholder = "—",
+}: LeetCodeSolvedCountProps) {
+  const solved = useLeetCodeSolved();
+
+  if (solved === null) {
+    return <span className={className}>{placeholder}</span>;
+  }
 
   return (
-    <a
-      href={LEETCODE_PROFILE_URL}
-      target="_blank"
-      rel="noreferrer"
-      className="achievement-detail leetcode-live group block no-underline"
-      style={{ marginTop: "2.5rem" }}
-    >
-      <div className="flex items-center justify-between font-mono text-xs uppercase tracking-[0.2em] opacity-60">
-        <span className="flex items-center gap-2">
-          <span
-            className={`inline-block h-1.5 w-1.5 rounded-full bg-current ${
-              status === "loading" ? "animate-pulse opacity-40" : ""
-            }`}
-          />
-          Problem count / live
-        </span>
-        <span className="transition-opacity group-hover:opacity-100">
-          @{LEETCODE_USERNAME} ↗
-        </span>
-      </div>
-
-      {status === "error" ? (
-        <p className="mt-6 font-mono text-sm opacity-60">
-          Live sync unavailable. View LeetCode profile directly ↗
-        </p>
-      ) : (
-        <>
-          <span
-            className="mega-number block"
-            style={{ fontSize: "clamp(3.5rem, 8vw, 6.5rem)" }}
-          >
-            {status === "loading" ? "—" : solved}
-          </span>
-          <p className="font-mono text-xs uppercase tracking-wider opacity-60">
-            problems solved{" "}
-            {data?.totalQuestions ? `/ ${data.totalQuestions} total` : ""}
-            {data?.ranking ? ` / rank #${data.ranking.toLocaleString()}` : ""}
-          </p>
-
-          <div className="mt-5 space-y-2 max-w-xs">
-            <DifficultyBar label="Easy" solved={data?.easySolved ?? 0} total={data?.totalEasy ?? 0} />
-            <DifficultyBar
-              label="Medium"
-              solved={data?.mediumSolved ?? 0}
-              total={data?.totalMedium ?? 0}
-            />
-            <DifficultyBar label="Hard" solved={data?.hardSolved ?? 0} total={data?.totalHard ?? 0} />
-          </div>
-        </>
-      )}
-    </a>
+    <span className={className}>
+      {prefix}
+      {solved}
+      {suffix}
+    </span>
   );
 }

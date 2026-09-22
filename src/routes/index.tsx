@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LeetCodeStats } from "@/components/LeetCodeStats";
+import { LeetCodeSolvedCount } from "@/components/LeetCodeStats";
 import resumeUrl from "@/assets/Kaushik_Resume.pdf";
 import { achievements, projects, skillGroups, type Project } from "@/lib/portfolio-data";
 
@@ -243,7 +243,7 @@ function Index() {
             ["EDUCATION", "B.TECH / 2028"],
             ["CGPA", "9.44 / 10"],
             ["REPOSITORIES", "14 PUBLIC"],
-            ["CONTRIBUTIONS", "84 / YEAR"],
+            ["LEETCODE", <LeetCodeSolvedCount suffix=" SOLVED" />],
           ].map(([label, value]) => (
             <div key={label}>
               <span>{label}</span>
@@ -383,24 +383,21 @@ function Index() {
               ))}
             </div>
           </div>
-          <div>
-            <div className="achievement-detail">
-              <span className="mega-number">{achievements[activeAchievement]?.rank}</span>
-              <p className="font-mono text-xs uppercase">
-                {achievements[activeAchievement]?.date} / {achievements[activeAchievement]?.result}
-              </p>
-              <h3>{achievements[activeAchievement]?.project}</h3>
-              <p>{achievements[activeAchievement]?.detail}</p>
-              <div className="winner-mark">
-                6×
-                <span>
-                  HACKATHON
-                  <br />
-                  WINNER
-                </span>
-              </div>
+          <div className="achievement-detail">
+            <span className="mega-number">{achievements[activeAchievement]?.rank}</span>
+            <p className="font-mono text-xs uppercase">
+              {achievements[activeAchievement]?.date} / {achievements[activeAchievement]?.result}
+            </p>
+            <h3>{achievements[activeAchievement]?.project}</h3>
+            <p>{achievements[activeAchievement]?.detail}</p>
+            <div className="winner-mark">
+              6×
+              <span>
+                HACKATHON
+                <br />
+                WINNER
+              </span>
             </div>
-            <LeetCodeStats />
           </div>
         </div>
       </section>
@@ -468,7 +465,7 @@ function Index() {
               ["14", "Public repositories"],
               ["84", "Contributions"],
               ["12", "Followers"],
-              ["350+", "LeetCode problems"],
+              [<LeetCodeSolvedCount />, "LeetCode problems"],
               ["80+", "GFG problems"],
               ["9.44", "CGPA"],
             ].map(([value, label]) => (

@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 
 const LEETCODE_USERNAME = "meetkaushik";
-const STATS_ENDPOINT = `https://leetcode-api-faisalshohag.herokuapp.com/${LEETCODE_USERNAME}`;
+const STATS_ENDPOINT = "/api/leetcode";
 const CACHE_KEY = `lc_solved_${LEETCODE_USERNAME}`;
+
+type LeetCodeFetchState = "syncing" | "ready" | "unavailable";
 
 function readCache(): number | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(CACHE_KEY);
     const parsed = raw ? Number(raw) : NaN;
-    return Number.isFinite(parsed) ? parsed : null;
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   } catch {
     return null;
   }
@@ -33,11 +35,15 @@ function writeCache(value: number) {
  * If a fetch ever fails, nothing is overwritten — the last good cached
  * value simply keeps showing.
  */
-export function useLeetCodeSolved(): number | null {
+export function useLeetCodeSolved(): { solved: number | null; state: LeetCodeFetchState } {
   const [solved, setSolved] = useState<number | null>(() => readCache());
+  const [state, setState] = useState<LeetCodeFetchState>(() =>
+    readCache() === null ? "syncing" : "ready",
+  );
 
   useEffect(() => {
     let cancelled = false;
+    const hadCachedValue = readCache() !== null;
 
     fetch(STATS_ENDPOINT)
       .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
@@ -45,11 +51,17 @@ export function useLeetCodeSolved(): number | null {
         if (cancelled) return;
         if (typeof json.totalSolved === "number" && json.totalSolved > 0) {
           setSolved(json.totalSolved);
+          setState("ready");
           writeCache(json.totalSolved);
+          return;
         }
+        throw new Error("Invalid LeetCode response");
       })
       .catch(() => {
-        // Silent by design: keep showing whatever is cached (or nothing yet).
+        if (cancelled) return;
+        if (!hadCachedValue) {
+          setState("unavailable");
+        }
       });
 
     return () => {
@@ -57,7 +69,7 @@ export function useLeetCodeSolved(): number | null {
     };
   }, []);
 
-  return solved;
+  return { solved, state };
 }
 
 type LeetCodeSolvedCountProps = {
@@ -65,7 +77,8 @@ type LeetCodeSolvedCountProps = {
   prefix?: string;
   suffix?: string;
   /** Rendered only until the first real number (cached or live) is known. */
-  placeholder?: string;
+  syncingLabel?: string;
+  unavailableLabel?: string;
 };
 
 /**
@@ -77,12 +90,15 @@ export function LeetCodeSolvedCount({
   className,
   prefix = "",
   suffix = "",
-  placeholder = "—",
+  syncingLabel = "SYNCING",
+  unavailableLabel = "UNAVAILABLE",
 }: LeetCodeSolvedCountProps) {
-  const solved = useLeetCodeSolved();
+  const { solved, state } = useLeetCodeSolved();
 
   if (solved === null) {
-    return <span className={className}>{placeholder}</span>;
+    return (
+      <span className={className}>{state === "unavailable" ? unavailableLabel : syncingLabel}</span>
+    );
   }
 
   return (

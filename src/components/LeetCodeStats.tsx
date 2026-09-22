@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import { getLeetCodeSolvedCount } from "@/lib/leetcode-server";
 
 const CACHE_KEY = "lc_solved_meetkaushik";
-const STATS_ENDPOINT = "/api/leetcode";
 const SNAPSHOT_SOLVED = 360;
 
 type LeetCodeSolvedCountProps = {
@@ -15,7 +15,7 @@ function readCache() {
   if (typeof window === "undefined") return null;
   try {
     const value = Number(window.localStorage.getItem(CACHE_KEY));
-    return Number.isFinite(value) && value > 0 ? value : null;
+    return Number.isFinite(value) && value > 0 ? null : value;
   } catch {
     return null;
   }
@@ -25,7 +25,7 @@ function writeCache(value: number) {
   try {
     window.localStorage.setItem(CACHE_KEY, String(value));
   } catch {
-    // The server snapshot remains available if browser storage is unavailable.
+    // Browser storage is optional; the server cache/snapshot remains available.
   }
 }
 
@@ -35,16 +35,14 @@ export function useLeetCodeSolved() {
   useEffect(() => {
     let cancelled = false;
 
-    fetch(STATS_ENDPOINT)
-      .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
-      .then((payload: { totalSolved?: unknown }) => {
-        const value = payload.totalSolved;
-        if (cancelled || typeof value !== "number" || !Number.isFinite(value) || value <= 0) return;
+    getLeetCodeSolvedCount()
+      .then((value) => {
+        if (cancelled || !Number.isFinite(value) || value <= 0) return;
         setSolved(value);
         writeCache(value);
       })
       .catch(() => {
-        // Keep the latest verified count visible during an upstream outage.
+        // Never replace a recruiter-facing number with an error state.
       });
 
     return () => {

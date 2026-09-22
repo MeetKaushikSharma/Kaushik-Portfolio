@@ -1,3 +1,2 @@
-// Deprecated: TanStack Start routes are generated from src/routes.
-// The functional /api/leetcode endpoint is implemented in src/routes/api/leetcode.ts.
+// Deprecated: this TanStack Start app uses src/lib/leetcode-server.ts.
 export {};

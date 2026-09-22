@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import {
   ArrowDown,
   ArrowUpRight,
@@ -50,6 +50,8 @@ const sections = [
 function jumpTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
+
+type StatRow = [label: string, value: ReactNode];
 
 function SystemGraphic({ type }: { type: Project["interaction"] }) {
   if (type === "judge")
@@ -238,17 +240,17 @@ function Index() {
           </div>
         </div>
         <div className="dossier-strip">
-          {[
-            ["BASE", "NOIDA, INDIA"],
-            ["EDUCATION", "B.TECH / 2028"],
-            ["CGPA", "9.44 / 10"],
-            ["REPOSITORIES", "14 PUBLIC"],
-            ["LEETCODE", <LeetCodeSolvedCount suffix=" SOLVED" />],
-          ].map(([label, value]) => (
-            <div key={label}>
-              <span>{label}</span>
-              <strong>{value}</strong>
-            </div>
+          {([
+          ["BASE", "NOIDA, INDIA"],
+          ["EDUCATION", "B.TECH / 2028"],
+          ["CGPA", "9.44 / 10"],
+          ["REPOSITORIES", "14 PUBLIC"],
+          ["LEETCODE", <LeetCodeSolvedCount suffix=" SOLVED" />],
+          ] satisfies StatRow[]).map(([label, value]) => (
+          <div key={label}>
+            <span>{label}</span>
+            <strong>{value}</strong>
+          </div>
           ))}
         </div>
       </section>
@@ -461,14 +463,14 @@ function Index() {
             </a>
           </div>
           <div className="evidence-stats">
-            {[
+            {([
               ["14", "Public repositories"],
               ["84", "Contributions"],
               ["12", "Followers"],
               [<LeetCodeSolvedCount />, "LeetCode problems"],
               ["80+", "GFG problems"],
               ["9.44", "CGPA"],
-            ].map(([value, label]) => (
+            ] satisfies [value: ReactNode, label: string][]).map(([value, label]) => (
               <div key={label}>
                 <strong>{value}</strong>
                 <span>{label}</span>

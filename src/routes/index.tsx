@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LeetCodeStats } from "@/components/LeetCodeStats";
 import resumeUrl from "@/assets/Kaushik_Resume.pdf";
 import { achievements, projects, skillGroups, type Project } from "@/lib/portfolio-data";
 
@@ -382,21 +383,24 @@ function Index() {
               ))}
             </div>
           </div>
-          <div className="achievement-detail">
-            <span className="mega-number">{achievements[activeAchievement]?.rank}</span>
-            <p className="font-mono text-xs uppercase">
-              {achievements[activeAchievement]?.date} / {achievements[activeAchievement]?.result}
-            </p>
-            <h3>{achievements[activeAchievement]?.project}</h3>
-            <p>{achievements[activeAchievement]?.detail}</p>
-            <div className="winner-mark">
-              6×
-              <span>
-                HACKATHON
-                <br />
-                WINNER
-              </span>
+          <div>
+            <div className="achievement-detail">
+              <span className="mega-number">{achievements[activeAchievement]?.rank}</span>
+              <p className="font-mono text-xs uppercase">
+                {achievements[activeAchievement]?.date} / {achievements[activeAchievement]?.result}
+              </p>
+              <h3>{achievements[activeAchievement]?.project}</h3>
+              <p>{achievements[activeAchievement]?.detail}</p>
+              <div className="winner-mark">
+                6×
+                <span>
+                  HACKATHON
+                  <br />
+                  WINNER
+                </span>
+              </div>
             </div>
+            <LeetCodeStats />
           </div>
         </div>
       </section>

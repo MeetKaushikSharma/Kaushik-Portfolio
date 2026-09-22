@@ -8,6 +8,7 @@ type LeetCodeSolvedCountProps = {
   className?: string;
   prefix?: string;
   suffix?: string;
+  plus?: boolean;
 };
 
 function readCache() {
@@ -24,7 +25,7 @@ function writeCache(value: number) {
   try {
     window.localStorage.setItem(CACHE_KEY, String(value));
   } catch {
-    // Storage can be unavailable in private browsing; the server snapshot remains available.
+    // The server snapshot remains available if browser storage is unavailable.
   }
 }
 
@@ -43,7 +44,7 @@ export function useLeetCodeSolved() {
         writeCache(value);
       })
       .catch(() => {
-        // Keep the latest local/server-confirmed value visible if the endpoint is temporarily unavailable.
+        // Keep the latest verified count visible during an upstream outage.
       });
 
     return () => {
@@ -54,12 +55,21 @@ export function useLeetCodeSolved() {
   return solved;
 }
 
-export function LeetCodeSolvedCount({ className, prefix = "", suffix = "" }: LeetCodeSolvedCountProps) {
+export function LeetCodeSolvedCount({
+  className,
+  prefix = "",
+  suffix = "",
+  plus = true,
+}: LeetCodeSolvedCountProps) {
   const solved = useLeetCodeSolved();
   return (
-    <span className={className}>
+    <span
+      className={className}
+      style={{ font: "inherit", letterSpacing: "inherit", fontWeight: "inherit" }}
+    >
       {prefix}
       {solved}
+      {plus ? "+" : ""}
       {suffix}
     </span>
   );

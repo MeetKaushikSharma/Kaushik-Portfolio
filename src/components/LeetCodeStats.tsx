@@ -18,7 +18,7 @@ const STATS_ENDPOINT = `https://leetcode-api-faisalshohag.herokuapp.com/${LEETCO
 
 type Status = "loading" | "success" | "error";
 
-function useCountUp(target: number, durationMs = 900, active = true) {
+function useCountUp(target: number, durationMs = 1100, active = true) {
   const [value, setValue] = useState(0);
 
   useEffect(() => {
@@ -44,32 +44,33 @@ function DifficultyBar({
   label,
   solved,
   total,
-  colorClass,
 }: {
   label: string;
   solved: number;
   total: number;
-  colorClass: string;
 }) {
   const pct = total > 0 ? Math.min(100, (solved / total) * 100) : 0;
   return (
-    <div className="flex items-center gap-3 text-xs">
-      <span className="w-14 shrink-0 font-mono uppercase tracking-wider text-white/50">
-        {label}
-      </span>
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+    <div className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-wider">
+      <span className="w-14 shrink-0 opacity-60">{label}</span>
+      <div className="h-[3px] flex-1 bg-current/15">
         <div
-          className={`h-full rounded-full ${colorClass} transition-all duration-700 ease-out`}
+          className="h-full bg-current transition-all duration-700 ease-out"
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="w-16 shrink-0 text-right font-mono text-white/70">
+      <span className="w-16 shrink-0 text-right opacity-70">
         {solved}/{total}
       </span>
     </div>
   );
 }
 
+/**
+ * Live LeetCode counter styled to match the site's brutalist
+ * mega-number / section-kicker system used across #achievements.
+ * Drop this inside the #achievements section (see index.tsx notes).
+ */
 export function LeetCodeStats() {
   const [status, setStatus] = useState<Status>("loading");
   const [data, setData] = useState<LeetCodeApiResponse | null>(null);
@@ -97,88 +98,59 @@ export function LeetCodeStats() {
     };
   }, []);
 
-  const solved = useCountUp(data?.totalSolved ?? 0, 900, status === "success");
+  const solved = useCountUp(data?.totalSolved ?? 0, 1100, status === "success");
 
   return (
     <a
       href={LEETCODE_PROFILE_URL}
       target="_blank"
       rel="noreferrer"
-      className="group relative block overflow-hidden rounded-xl border border-white/10 bg-black/60 p-5 font-mono text-white transition-colors hover:border-emerald-400/50"
+      className="achievement-detail leetcode-live group block no-underline"
+      style={{ marginTop: "2.5rem" }}
     >
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.06]"
-        style={{
-          backgroundImage:
-            "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
-          backgroundSize: "18px 18px",
-        }}
-      />
-
-      <div className="relative flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between font-mono text-xs uppercase tracking-[0.2em] opacity-60">
+        <span className="flex items-center gap-2">
           <span
-            className={`h-2 w-2 rounded-full ${
-              status === "success"
-                ? "bg-emerald-400 shadow-[0_0_8px_2px_rgba(52,211,153,0.6)] animate-pulse"
-                : status === "error"
-                  ? "bg-red-500"
-                  : "bg-white/30 animate-pulse"
+            className={`inline-block h-1.5 w-1.5 rounded-full bg-current ${
+              status === "loading" ? "animate-pulse opacity-40" : ""
             }`}
           />
-          <span className="text-[11px] uppercase tracking-[0.2em] text-white/50">
-            leetcode // live
-          </span>
-        </div>
-        <span className="text-[11px] uppercase tracking-widest text-white/30 group-hover:text-emerald-400">
+          Problem count / live
+        </span>
+        <span className="transition-opacity group-hover:opacity-100">
           @{LEETCODE_USERNAME} ↗
         </span>
       </div>
 
-      <div className="relative mt-4">
-        {status === "error" ? (
-          <p className="text-sm text-white/50">
-            Live sync unavailable right now. View profile directly ↗
+      {status === "error" ? (
+        <p className="mt-6 font-mono text-sm opacity-60">
+          Live sync unavailable. View LeetCode profile directly ↗
+        </p>
+      ) : (
+        <>
+          <span
+            className="mega-number block"
+            style={{ fontSize: "clamp(3.5rem, 8vw, 6.5rem)" }}
+          >
+            {status === "loading" ? "—" : solved}
+          </span>
+          <p className="font-mono text-xs uppercase tracking-wider opacity-60">
+            problems solved{" "}
+            {data?.totalQuestions ? `/ ${data.totalQuestions} total` : ""}
+            {data?.ranking ? ` / rank #${data.ranking.toLocaleString()}` : ""}
           </p>
-        ) : (
-          <>
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold tabular-nums">
-                {status === "loading" ? "—" : solved}
-              </span>
-              <span className="text-sm text-white/40">
-                / {data?.totalQuestions ?? "—"} problems solved
-              </span>
-            </div>
-            {data?.ranking ? (
-              <p className="mt-1 text-xs text-white/40">
-                Global rank #{data.ranking.toLocaleString()}
-              </p>
-            ) : null}
 
-            <div className="mt-4 space-y-2">
-              <DifficultyBar
-                label="Easy"
-                solved={data?.easySolved ?? 0}
-                total={data?.totalEasy ?? 0}
-                colorClass="bg-emerald-400"
-              />
-              <DifficultyBar
-                label="Medium"
-                solved={data?.mediumSolved ?? 0}
-                total={data?.totalMedium ?? 0}
-                colorClass="bg-amber-400"
-              />
-              <DifficultyBar
-                label="Hard"
-                solved={data?.hardSolved ?? 0}
-                total={data?.totalHard ?? 0}
-                colorClass="bg-red-400"
-              />
-            </div>
-          </>
-        )}
-      </div>
+          <div className="mt-5 space-y-2 max-w-xs">
+            <DifficultyBar label="Easy" solved={data?.easySolved ?? 0} total={data?.totalEasy ?? 0} />
+            <DifficultyBar
+              label="Medium"
+              solved={data?.mediumSolved ?? 0}
+              total={data?.totalMedium ?? 0}
+            />
+            <DifficultyBar label="Hard" solved={data?.hardSolved ?? 0} total={data?.totalHard ?? 0} />
+          </div>
+        </>
+      )}
     </a>
   );
 }

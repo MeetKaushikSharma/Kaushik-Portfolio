@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 
 const LEETCODE_USERNAME = "meetkaushik";
-const STATS_ENDPOINT = `https://leetcode-api-faisalshohag.herokuapp.com/${LEETCODE_USERNAME}`;
+// alfa-leetcode-api: actively maintained, CORS *, returns { totalSolved, ... }
+const STATS_ENDPOINT = `https://alfa-leetcode-api.onrender.com/userProfile/${LEETCODE_USERNAME}`;
 const CACHE_KEY = `lc_solved_${LEETCODE_USERNAME}`;
 
 function readCache(): number | null {
@@ -38,8 +39,11 @@ export function useLeetCodeSolved(): number | null {
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
+    // 10 s timeout — guards against Render cold-start stalls
+    const timeoutId = setTimeout(() => controller.abort(), 10_000);
 
-    fetch(STATS_ENDPOINT)
+    fetch(STATS_ENDPOINT, { signal: controller.signal })
       .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
       .then((json: { totalSolved?: number }) => {
         if (cancelled) return;
@@ -50,10 +54,13 @@ export function useLeetCodeSolved(): number | null {
       })
       .catch(() => {
         // Silent by design: keep showing whatever is cached (or nothing yet).
-      });
+      })
+      .finally(() => clearTimeout(timeoutId));
 
     return () => {
       cancelled = true;
+      controller.abort();
+      clearTimeout(timeoutId);
     };
   }, []);
 
@@ -82,11 +89,11 @@ export function LeetCodeSolvedCount({
   const solved = useLeetCodeSolved();
 
   if (solved === null) {
-    return <span className={className}>{placeholder}</span>;
+    return <span className={className} style={{ font: "inherit", textTransform: "inherit" }}>{placeholder}</span>;
   }
 
   return (
-    <span className={className}>
+    <span className={className} style={{ font: "inherit", textTransform: "inherit" }}>
       {prefix}
       {solved}
       {suffix}

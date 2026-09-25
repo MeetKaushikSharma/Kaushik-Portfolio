@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { LeetCodeSolvedCount } from "@/components/LeetCodeStats";
 import resumeUrl from "@/assets/Kaushik_Resume.pdf";
 import { achievements, projects, skillGroups, type Project } from "@/lib/portfolio-data";
+import { useKineticScroll } from "@/hooks/useKineticScroll";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -122,6 +123,9 @@ function Index() {
     [activeProject],
   );
 
+  // Initialise Lenis smooth scroll + GSAP ScrollTrigger animations
+  useKineticScroll();
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -196,7 +200,7 @@ function Index() {
         <span className="font-mono text-[10px]">{progress}%</span>
       </aside>
 
-      <section id="top" className="hero-section section-shell">
+      <section id="top" className="hero-section section-shell" data-scroll-section>
         <div className="hero-grid" aria-hidden="true" />
         <div className="relative z-10 flex items-start justify-between gap-4 pt-20 font-mono text-[10px] uppercase md:text-xs">
           <span>Portfolio / 2026</span>
@@ -255,7 +259,7 @@ function Index() {
         </div>
       </section>
 
-      <section id="mission-control" className="section-shell border-t border-border py-24 md:py-32">
+      <section id="mission-control" className="section-shell border-t border-border py-24 md:py-32" data-scroll-section>
         <div className="section-kicker">
           <span>00</span>
           <span>Choose your route</span>
@@ -283,7 +287,7 @@ function Index() {
         </div>
       </section>
 
-      <section id="projects" className="section-shell border-t border-border py-24 md:py-32">
+      <section id="projects" className="section-shell border-t border-border py-24 md:py-32" data-scroll-section>
         <div className="section-kicker">
           <span>01</span>
           <span>Build systems</span>
@@ -357,7 +361,7 @@ function Index() {
         </div>
       </section>
 
-      <section id="achievements" className="section-shell inverse-section py-24 md:py-32">
+      <section id="achievements" className="section-shell inverse-section py-24 md:py-32" data-scroll-section>
         <div className="section-kicker">
           <span>02</span>
           <span>Win under pressure</span>
@@ -404,7 +408,7 @@ function Index() {
         </div>
       </section>
 
-      <section id="skills" className="section-shell py-24 md:py-32">
+      <section id="skills" className="section-shell py-24 md:py-32" data-scroll-section>
         <div className="flex flex-wrap items-start justify-between gap-8">
           <div>
             <div className="section-kicker">
@@ -436,7 +440,7 @@ function Index() {
         </div>
       </section>
 
-      <section id="evidence" className="section-shell border-t border-border py-24 md:py-32">
+      <section id="evidence" className="section-shell border-t border-border py-24 md:py-32" data-scroll-section>
         <div className="section-kicker">
           <span>04</span>
           <span>Source evidence</span>
@@ -480,7 +484,7 @@ function Index() {
         </div>
       </section>
 
-      <section id="contact" className="section-shell inverse-section min-h-[80vh] py-24 md:py-32">
+      <section id="contact" className="section-shell inverse-section min-h-[80vh] py-24 md:py-32" data-scroll-section>
         <div className="section-kicker">
           <span>05</span>
           <span>{completed.length >= 3 ? "Protocol unlocked" : "Establish contact"}</span>

@@ -1,4 +1,4 @@
-@import "tailwindcss" source(none);
+@import "tailwindcss" source(none); 
 @source "../src";
 @import "tw-animate-css";
 
@@ -133,6 +133,269 @@
   --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LENIS SMOOTH SCROLL - Required base styles
+   ═══════════════════════════════════════════════════════════════════ */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GPU-ACCELERATED ANIMATION LAYER
+   All transforms use translate3d / rotate3d / scale3d.
+   will-change is set ONLY on actively-animated elements to avoid
+   excessive memory consumption on low-end devices.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* 3D perspective context for the entire page */
+main {
+  perspective: 1200px;
+  perspective-origin: 50% 40%;
+}
+
+/* Scroll-animated sections get composite layer promotion */
+[data-scroll-section] {
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ELASTIC CUBIC-BEZIER HOVER STATES
+   Custom easing: overshoot on enter, smooth settle on leave.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Elastic overshoot easing curve */
+:root {
+  --ease-elastic-out: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-elastic-in: cubic-bezier(0.36, 0, 0.66, -0.56);
+  --ease-smooth-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --hover-duration: 0.4s;
+}
+
+/* Navigation links: elastic underline with subtle lift */
+.nav-link {
+  transition: transform var(--hover-duration) var(--ease-elastic-out),
+              color var(--hover-duration) var(--ease-smooth-out);
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+.nav-link:hover {
+  transform: translate3d(0, -2px, 0);
+}
+.nav-link::after {
+  transition: right 0.35s var(--ease-elastic-out) !important;
+}
+
+/* Buttons: elastic scale + slight lift */
+button,
+a[role="button"],
+[class*="Button"],
+.inline-flex {
+  transition: transform var(--hover-duration) var(--ease-elastic-out),
+              box-shadow var(--hover-duration) var(--ease-smooth-out),
+              background-color 0.2s ease,
+              color 0.2s ease,
+              border-color 0.2s ease;
+  transform: translate3d(0, 0, 0);
+}
+button:hover,
+a[role="button"]:hover,
+.inline-flex:hover {
+  transform: translate3d(0, -2px, 4px) scale3d(1.02, 1.02, 1);
+}
+button:active,
+a[role="button"]:active,
+.inline-flex:active {
+  transform: translate3d(0, 0, 0) scale3d(0.98, 0.98, 1);
+  transition-duration: 0.1s;
+}
+
+/* Mission rows: elastic slide + 3D tilt on hover */
+.mission-row {
+  transition: transform var(--hover-duration) var(--ease-elastic-out),
+              background-color 0.3s ease;
+  transform: translate3d(0, 0, 0);
+  transform-style: preserve-3d;
+}
+.mission-row:hover {
+  transform: translate3d(8px, 0, 0) rotateY(-1deg);
+  background-color: color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+
+/* Project tabs: elastic indent + subtle 3D */
+.project-tab {
+  transition: opacity 0.2s ease,
+              padding 0.3s var(--ease-elastic-out),
+              transform var(--hover-duration) var(--ease-elastic-out);
+  transform: translate3d(0, 0, 0);
+}
+.project-tab:hover {
+  transform: translate3d(6px, 0, 0);
+  opacity: 0.8;
+}
+
+/* Achievement rows: elastic slide */
+.achievement-row {
+  transition: opacity 0.25s ease,
+              transform var(--hover-duration) var(--ease-elastic-out);
+  transform: translate3d(0, 0, 0);
+}
+.achievement-row:hover {
+  transform: translate3d(6px, 0, 0);
+}
+
+/* Tech chips: elastic pop on hover */
+.tech-chip {
+  transition: transform var(--hover-duration) var(--ease-elastic-out),
+              background-color 0.25s ease,
+              border-color 0.25s ease;
+  transform: translate3d(0, 0, 0);
+}
+.tech-chip:hover {
+  transform: translate3d(0, -3px, 6px) scale3d(1.08, 1.08, 1);
+  background-color: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
+}
+
+/* Text links: elastic lift */
+.text-link {
+  transition: transform var(--hover-duration) var(--ease-elastic-out),
+              gap 0.3s var(--ease-elastic-out);
+  transform: translate3d(0, 0, 0);
+}
+.text-link:hover {
+  transform: translate3d(0, -2px, 0);
+  gap: 0.6rem;
+}
+
+/* Evidence stats: elastic card lift */
+.evidence-stats div {
+  transition: transform var(--hover-duration) var(--ease-elastic-out),
+              box-shadow 0.3s ease;
+  transform: translate3d(0, 0, 0);
+}
+.evidence-stats div:hover {
+  transform: translate3d(0, -4px, 8px) scale3d(1.03, 1.03, 1);
+  box-shadow: 0 12px 40px -12px color-mix(in oklab, var(--foreground) 15%, transparent);
+}
+
+/* Skill groups: subtle slide on hover */
+.skill-group {
+  transition: transform var(--hover-duration) var(--ease-elastic-out),
+              background-color 0.3s ease;
+  transform: translate3d(0, 0, 0);
+}
+.skill-group:hover {
+  transform: translate3d(4px, 0, 0);
+  background-color: color-mix(in oklab, var(--foreground) 3%, transparent);
+}
+
+/* Achievement detail: 3D hover tilt */
+.achievement-detail {
+  transition: transform 0.6s var(--ease-elastic-out),
+              box-shadow 0.4s ease;
+  transform: translate3d(0, 0, 0);
+  transform-style: preserve-3d;
+}
+.achievement-detail:hover {
+  transform: translate3d(0, -4px, 10px) rotateX(-1deg) rotateY(2deg);
+  box-shadow: 0 20px 60px -20px color-mix(in oklab, var(--foreground) 12%, transparent);
+}
+
+/* Hero name: perspective-enhanced wobble on hover */
+.hero-name {
+  transition: transform 0.6s var(--ease-elastic-out);
+  transform: translate3d(0, 0, 0);
+  transform-style: preserve-3d;
+}
+
+/* Contact title: subtle 3D lift */
+.contact-title {
+  transition: transform 0.5s var(--ease-elastic-out);
+  transform: translate3d(0, 0, 0);
+}
+
+/* Stamp: elastic wiggle */
+.stamp {
+  transition: transform var(--hover-duration) var(--ease-elastic-out);
+}
+.stamp:hover {
+  transform: rotate(-3deg) scale3d(1.1, 1.1, 1);
+}
+
+/* Winner mark: elastic pulse */
+.winner-mark {
+  transition: transform 0.5s var(--ease-elastic-out);
+  transform: translate3d(0, 0, 0);
+}
+.winner-mark:hover {
+  transform: translate3d(0, -4px, 0) scale3d(1.05, 1.05, 1);
+}
+
+/* System graphics: subtle 3D tilt on hover */
+.system-graphic {
+  transition: transform 0.5s var(--ease-elastic-out);
+  transform: translate3d(0, 0, 0);
+  transform-style: preserve-3d;
+}
+.system-graphic:hover {
+  transform: translate3d(0, 0, 5px) rotateX(-2deg) rotateY(1deg);
+}
+
+/* Mega number: subtle perspective lift */
+.mega-number {
+  transition: transform 0.5s var(--ease-elastic-out);
+  transform: translate3d(0, 0, 0);
+  display: inline-block;
+}
+.mega-number:hover {
+  transform: translate3d(0, -5px, 10px) scale3d(1.03, 1.03, 1);
+}
+
+/* Project stage: 3D entrance refinement */
+.project-stage {
+  transform-style: preserve-3d;
+  perspective: 800px;
+}
+
+/* Dossier strip items: elastic pop */
+.dossier-strip div {
+  transition: transform var(--hover-duration) var(--ease-elastic-out),
+              background-color 0.3s ease;
+  transform: translate3d(0, 0, 0);
+}
+.dossier-strip div:hover {
+  transform: translate3d(0, -3px, 5px) scale3d(1.04, 1.04, 1);
+  background-color: color-mix(in oklab, var(--foreground) 5%, transparent);
+}
+
+/* Rail track: smooth fill animation uses GPU */
+.rail-track i {
+  will-change: height;
+  transition: height 0.6s var(--ease-smooth-out);
+}
+
+/* Status dot pulse - GPU accelerated */
+.status-dot::before {
+  will-change: opacity;
 }
 
 @layer base {

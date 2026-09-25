@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
 import { getLeetCodeSolvedCount } from "@/lib/leetcode-server";
 
-const LEETCODE_USERNAME = "meetkaushik";
-// alfa-leetcode-api: actively maintained, CORS *, returns { totalSolved, ... }
-const STATS_ENDPOINT = `https://alfa-leetcode-api.onrender.com/userProfile/${LEETCODE_USERNAME}`;
-const CACHE_KEY = `lc_solved_${LEETCODE_USERNAME}`;
+const CACHE_KEY = "lc_solved_meetkaushik";
+const SNAPSHOT_SOLVED = 360;
+
+type LeetCodeSolvedCountProps = {
+  className?: string;
+  prefix?: string;
+  suffix?: string;
+  plus?: boolean;
+};
 
 function readCache() {
   if (typeof window === "undefined") return null;
   try {
     const value = Number(window.localStorage.getItem(CACHE_KEY));
-    return Number.isFinite(value) && value > 0 ? null : value;
+    return Number.isFinite(value) && value > 0 ? value : null;
   } catch {
     return null;
   }
@@ -29,28 +34,19 @@ export function useLeetCodeSolved() {
 
   useEffect(() => {
     let cancelled = false;
-    const controller = new AbortController();
-    // 10 s timeout — guards against Render cold-start stalls
-    const timeoutId = setTimeout(() => controller.abort(), 10_000);
 
-    fetch(STATS_ENDPOINT, { signal: controller.signal })
-      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
-      .then((json: { totalSolved?: number }) => {
-        if (cancelled) return;
-        if (typeof json.totalSolved === "number" && json.totalSolved > 0) {
-          setSolved(json.totalSolved);
-          writeCache(json.totalSolved);
-        }
+    getLeetCodeSolvedCount()
+      .then((value) => {
+        if (cancelled || !Number.isFinite(value) || value <= 0) return;
+        setSolved(value);
+        writeCache(value);
       })
       .catch(() => {
-        // Silent by design: keep showing whatever is cached (or nothing yet).
-      })
-      .finally(() => clearTimeout(timeoutId));
+        // Never replace a recruiter-facing number with an error state.
+      });
 
     return () => {
       cancelled = true;
-      controller.abort();
-      clearTimeout(timeoutId);
     };
   }, []);
 
@@ -64,13 +60,11 @@ export function LeetCodeSolvedCount({
   plus = true,
 }: LeetCodeSolvedCountProps) {
   const solved = useLeetCodeSolved();
-
-  if (solved === null) {
-    return <span className={className} style={{ font: "inherit", textTransform: "inherit" }}>{placeholder}</span>;
-  }
-
   return (
-    <span className={className} style={{ font: "inherit", textTransform: "inherit" }}>
+    <span
+      className={className}
+      style={{ font: "inherit", letterSpacing: "inherit", fontWeight: "inherit" }}
+    >
       {prefix}
       {solved}
       {plus ? "+" : ""}

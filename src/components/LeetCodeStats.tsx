@@ -1,41 +1,31 @@
 import { useEffect, useState } from "react";
+import { getLeetCodeSolvedCount } from "@/lib/leetcode-server";
 
 const LEETCODE_USERNAME = "meetkaushik";
 // alfa-leetcode-api: actively maintained, CORS *, returns { totalSolved, ... }
 const STATS_ENDPOINT = `https://alfa-leetcode-api.onrender.com/userProfile/${LEETCODE_USERNAME}`;
 const CACHE_KEY = `lc_solved_${LEETCODE_USERNAME}`;
 
-function readCache(): number | null {
+function readCache() {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem(CACHE_KEY);
-    const parsed = raw ? Number(raw) : NaN;
-    return Number.isFinite(parsed) ? parsed : null;
+    const value = Number(window.localStorage.getItem(CACHE_KEY));
+    return Number.isFinite(value) && value > 0 ? null : value;
   } catch {
     return null;
   }
 }
 
 function writeCache(value: number) {
-  if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(CACHE_KEY, String(value));
   } catch {
-    // ignore storage errors (private mode, quota, etc.)
+    // Browser storage is optional; the server cache/snapshot remains available.
   }
 }
 
-/**
- * Live LeetCode solved-problem count for `meetkaushik`.
- * No hardcoded seed number: the very first successful fetch a visitor's
- * browser makes is written to localStorage, and every subsequent load
- * (for that visitor) shows that cached number instantly while a fresh
- * fetch runs silently in the background and updates the cache again.
- * If a fetch ever fails, nothing is overwritten — the last good cached
- * value simply keeps showing.
- */
-export function useLeetCodeSolved(): number | null {
-  const [solved, setSolved] = useState<number | null>(() => readCache());
+export function useLeetCodeSolved() {
+  const [solved, setSolved] = useState<number>(() => readCache() ?? SNAPSHOT_SOLVED);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,24 +57,11 @@ export function useLeetCodeSolved(): number | null {
   return solved;
 }
 
-type LeetCodeSolvedCountProps = {
-  className?: string;
-  prefix?: string;
-  suffix?: string;
-  /** Rendered only until the first real number (cached or live) is known. */
-  placeholder?: string;
-};
-
-/**
- * Drop-in inline number — inherits the caller's typography via
- * `className`, so it sits directly inside existing stat grids
- * (mega-number cells, quick-facts rows, etc.) instead of its own card.
- */
 export function LeetCodeSolvedCount({
   className,
   prefix = "",
   suffix = "",
-  placeholder = "—",
+  plus = true,
 }: LeetCodeSolvedCountProps) {
   const solved = useLeetCodeSolved();
 
@@ -96,6 +73,7 @@ export function LeetCodeSolvedCount({
     <span className={className} style={{ font: "inherit", textTransform: "inherit" }}>
       {prefix}
       {solved}
+      {plus ? "+" : ""}
       {suffix}
     </span>
   );

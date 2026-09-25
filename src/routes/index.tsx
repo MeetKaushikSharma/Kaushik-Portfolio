@@ -508,9 +508,13 @@ function Index() {
             asChild
             className="h-12 rounded-none px-6 font-mono text-xs uppercase"
           >
-            <a href="mailto:kaushiksharmabusiness@email.com">
-              <Mail /> Email me
-            </a>
+            <a
+  href="https://mail.google.com/mail/?view=cm&fs=1&to=kaushiksharmabusiness%40gmail.com"
+  target="_blank"
+  rel="noreferrer"
+>
+  <Mail /> Email me
+</a>
           </Button>
           <Button
             size="lg"

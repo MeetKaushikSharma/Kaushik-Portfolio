@@ -948,6 +948,180 @@ a[role="button"]:active,
     opacity: 0;
   }
 }
+/* ═══════════════════════════════════════════════════════════════════
+   CUSTOM MAGNETIC CURSOR — desktop only, fine pointer
+   ═══════════════════════════════════════════════════════════════════ */
+.custom-cursor-dot,
+.custom-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.custom-cursor-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--foreground);
+  border-radius: 50%;
+  mix-blend-mode: difference;
+}
+
+.custom-cursor-ring {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--foreground);
+  border-radius: 50%;
+  mix-blend-mode: difference;
+  transition: width 0.3s var(--ease-elastic-out),
+              height 0.3s var(--ease-elastic-out),
+              background 0.3s ease;
+}
+
+.custom-cursor-ring.is-hover {
+  width: 56px;
+  height: 56px;
+  background: color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+
+.custom-cursor-ring.is-clicking {
+  width: 22px;
+  height: 22px;
+  background: color-mix(in oklab, var(--foreground) 20%, transparent);
+}
+
+.custom-cursor-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PROTOCOL RAIL — enhanced proof meter with stage nodes
+   ═══════════════════════════════════════════════════════════════════ */
+.protocol-rail {
+  gap: 0.8rem;
+}
+
+.protocol-track {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.3rem;
+  width: 2.2rem;
+}
+
+.protocol-node {
+  width: 100%;
+  height: 1.5rem;
+  border: 1px solid var(--border);
+  background: var(--background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-elastic-out);
+  position: relative;
+}
+
+.protocol-node:hover,
+.protocol-node:focus {
+  border-color: var(--foreground);
+  color: var(--foreground);
+  background: color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+
+.protocol-node.is-current {
+  border-color: var(--foreground);
+  color: var(--foreground);
+  animation: protocolPulse 1.6s ease-in-out infinite;
+}
+
+.protocol-node.is-done {
+  background: var(--foreground);
+  color: var(--background);
+  border-color: var(--foreground);
+}
+
+.protocol-node-icon {
+  font-size: 0.55rem;
+}
+
+.protocol-node-num {
+  font-size: 0.55rem;
+  font-weight: 600;
+}
+
+.protocol-tooltip {
+  position: absolute;
+  right: calc(100% + 0.75rem);
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 14rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border);
+  background: var(--background);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.protocol-node:hover .protocol-tooltip,
+.protocol-node:focus .protocol-tooltip {
+  opacity: 1;
+}
+
+.protocol-tooltip-num {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--muted-foreground);
+}
+
+.protocol-tooltip strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+.protocol-tooltip p {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+}
+
+@keyframes protocolPulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--foreground) 40%, transparent); }
+  50% { box-shadow: 0 0 0 4px color-mix(in oklab, var(--foreground) 0%, transparent); }
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(800%); }
+}
+
+@keyframes soundBar {
+  0%, 100% { height: 2px; }
+  50% { height: 12px; }
+}
+
 @media (max-width: 767px) {
   .proof-rail {
     display: none;

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowUpRight,
@@ -10,13 +10,34 @@ import {
   Mail,
   Menu,
   Printer,
+  Sparkles,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LeetCodeSolvedCount } from "@/components/LeetCodeStats";
+import { AtmosphereCanvas } from "@/components/canvas/AtmosphereCanvas";
+import { SceneProject } from "@/components/canvas/SceneProject";
+import { CustomCursor } from "@/components/ui/CustomCursor";
+import { SoundToggle } from "@/components/ui/SoundToggle";
+import { EvidenceCollector } from "@/components/gamification/EvidenceCollector";
+import { ProtocolMeter } from "@/components/gamification/ProtocolMeter";
+import { MissionUnlock } from "@/components/gamification/MissionUnlock";
+import {
+  PROTOCOL_STAGES,
+  collectEvidence,
+  defaultState,
+  loadProtocol,
+  saveProtocol,
+  stageById,
+  toggleStage,
+  type ProtocolStage,
+  type ProtocolState,
+  type StageId,
+} from "@/lib/protocolEngine";
 import resumeUrl from "@/assets/Kaushik_Resume.pdf";
-import { achievements, projects, skillGroups, type Project } from "@/lib/portfolio-data";
+import { achievements, projects, skillGroups } from "@/lib/portfolio-data";
 import { useKineticScroll } from "@/hooks/useKineticScroll";
+import { useSoundDesign } from "@/hooks/useSoundDesign";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -48,76 +69,35 @@ const sections = [
   ["contact", "Establish contact"],
 ] as const;
 
+const stageToSection: Record<StageId, string> = {
+  hero: "top",
+  mission: "mission-control",
+  projects: "projects",
+  skills: "skills",
+  contact: "contact",
+  achievements: "achievements",
+  evidence: "evidence",
+};
+
 function jumpTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 type StatRow = [label: string, value: ReactNode];
 
-function SystemGraphic({ type }: { type: Project["interaction"] }) {
-  if (type === "judge")
-    return (
-      <div className="system-graphic grid grid-cols-3 gap-3" aria-hidden="true">
-        <span>INPUT</span>
-        <span className="active">JUDGE_01</span>
-        <span>VERDICT</span>
-        <i />
-        <i />
-        <i />
-      </div>
-    );
-  if (type === "diagnostic")
-    return (
-      <div className="system-graphic diagnostic" aria-hidden="true">
-        <b>97.5</b>
-        <span>CONFIDENCE</span>
-        <div className="scan" />
-      </div>
-    );
-  if (type === "search")
-    return (
-      <div className="system-graphic search-lines" aria-hidden="true">
-        <span>SEARCH</span>
-        <i />
-        <i />
-        <i />
-        <b>SOURCE VERIFIED</b>
-      </div>
-    );
-  if (type === "robot")
-    return (
-      <div className="system-graphic robot-grid" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-        <i />
-        <b>ROC / ONLINE</b>
-      </div>
-    );
-  if (type === "audio")
-    return (
-      <div className="system-graphic waveform" aria-hidden="true">
-        {[2, 5, 8, 4, 10, 6, 3, 9, 5, 7, 3, 6].map((n, i) => (
-          <i key={i} style={{ height: `${n * 8}%` }} />
-        ))}
-      </div>
-    );
-  return (
-    <div className="system-graphic field-grid" aria-hidden="true">
-      <span>FIELD_04</span>
-      <b>ROVER LOCKED</b>
-      <i />
-    </div>
-  );
-}
-
 function Index() {
-  const [completed, setCompleted] = useState<string[]>([]);
+  const [protocol, setProtocol] = useState<ProtocolState>(defaultState);
   const [activeProject, setActiveProject] = useState(projects[0]?.id ?? "");
   const [activeAchievement, setActiveAchievement] = useState(0);
   const [recruiterMode, setRecruiterMode] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const progress = Math.round((completed.length / sections.length) * 100);
+  const [collecting, setCollecting] = useState(false);
+  const [collectTarget, setCollectTarget] = useState<{ x: number; y: number; label: string } | null>(null);
+  const [recentUnlock, setRecentUnlock] = useState<ProtocolStage | null>(null);
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const isHydratedRef = useRef(false);
+
+  const { enabled: soundEnabled, setEnabled, sounds } = useSoundDesign();
   const currentProject = useMemo(
     () => projects.find((project) => project.id === activeProject) ?? projects[0],
     [activeProject],
@@ -126,52 +106,160 @@ function Index() {
   // Initialise Lenis smooth scroll + GSAP ScrollTrigger animations
   useKineticScroll();
 
+  // Hydrate saved protocol state from localStorage cleanly on client
+  useEffect(() => {
+    const saved = loadProtocol();
+    setProtocol(saved);
+    if (saved.completed.length > 0 && saved.completed.length < PROTOCOL_STAGES.length) {
+      setShowResumePrompt(true);
+    }
+    isHydratedRef.current = true;
+  }, []);
+
+  // Persist protocol state whenever it changes (only after hydration)
+  useEffect(() => {
+    if (isHydratedRef.current) {
+      saveProtocol(protocol);
+    }
+  }, [protocol]);
+
+  // Section → protocol stage mapping (intersection-driven)
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio > 0.35) {
-            setCompleted((current) =>
-              current.includes(entry.target.id) ? current : [...current, entry.target.id],
-            );
+          if (entry.isIntersecting && entry.intersectionRatio > 0.25) {
+            const elId = entry.target.id;
+            let stageId: StageId | null = null;
+            if (elId === "top") stageId = "hero";
+            else if (elId === "mission-control") stageId = "mission";
+            else if (elId === "projects") stageId = "projects";
+            else if (elId === "skills" || elId === "achievements") stageId = "skills";
+            else if (elId === "contact") stageId = "contact";
+
+            if (stageId) {
+              setProtocol((current) => {
+                if (!current.completed.includes(stageId!)) {
+                  const updated = toggleStage(current, stageId!);
+                  const stage = stageById(stageId!);
+                  if (stage) setRecentUnlock(stage);
+                  return updated;
+                }
+                return current;
+              });
+            }
           }
         });
       },
-      { threshold: [0.35] },
+      { threshold: [0.25] },
     );
-    sections.forEach(([id]) => {
+
+    const targetIds = ["top", "mission-control", "projects", "achievements", "skills", "contact"];
+    targetIds.forEach((id) => {
       const element = document.getElementById(id);
       if (element) observer.observe(element);
     });
+
     return () => observer.disconnect();
   }, []);
 
+  // Evidence collection flow: click a project → particles fly to the meter
+  function handleProjectClick(projectId: string) {
+    setActiveProject(projectId);
+    const index = projects.findIndex((p) => p.id === projectId);
+    const project = projects[index];
+    if (!project) return;
+    setCollecting(true);
+    setCollectTarget({ x: 0.92, y: 0.5, label: project.name.toUpperCase() });
+    setProtocol((current) => collectEvidence(current));
+    sounds.click();
+  }
+
+  function handleAchievementClick(index: number) {
+    setActiveAchievement(index);
+    setCollecting(true);
+    setCollectTarget({ x: 0.92, y: 0.5, label: "EVIDENCE" });
+    setProtocol((current) => collectEvidence(current));
+    sounds.click();
+  }
+
+  function handleCollectDone() {
+    setCollecting(false);
+    setCollectTarget(null);
+  }
+
+  function handleMissionClick(id: string) {
+    jumpTo(id);
+    setMenuOpen(false);
+    sounds.hover();
+  }
+
+  function handleStageClick(stageId: StageId) {
+    const sectionId = stageToSection[stageId] ?? "top";
+    jumpTo(sectionId);
+    sounds.hover();
+  }
+
+  function toggleSound() {
+    const next = !soundEnabled;
+    setEnabled(next);
+    setProtocol((current) => ({ ...current, soundEnabled: next }));
+    if (next) {
+      sounds.hover();
+    }
+  }
+
+  function resumeNextStage() {
+    const nextStage = PROTOCOL_STAGES.find((s) => !protocol.completed.includes(s.id));
+    if (nextStage) {
+      jumpTo(stageToSection[nextStage.id]);
+    }
+    setShowResumePrompt(false);
+    sounds.hover();
+  }
+
   return (
     <main className={recruiterMode ? "recruiter-mode" : ""}>
+      <AtmosphereCanvas intensity={1.0} />
+      <CustomCursor />
+
       <header className="fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:px-8">
         <button
           className="font-mono text-xs font-bold uppercase tracking-widest"
           onClick={() => jumpTo("top")}
           aria-label="Return to top"
+          data-cursor-text="TOP"
         >
           KS / 026
         </button>
         <nav className="hidden items-center gap-7 md:flex" aria-label="Primary navigation">
           {sections.map(([id, label]) => (
-            <button key={id} onClick={() => jumpTo(id)} className="nav-link">
+            <button
+              key={id}
+              onClick={() => {
+                jumpTo(id);
+                setMenuOpen(false);
+                sounds.hover();
+              }}
+              className="nav-link"
+              data-cursor-text="GOTO"
+            >
               {label}
             </button>
           ))}
         </nav>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setMenuOpen((open) => !open)}
-          className="md:hidden"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-        >
-          {menuOpen ? <X /> : <Menu />}
-        </Button>
+        <div className="flex items-center gap-2">
+          <SoundToggle enabled={soundEnabled} onToggle={toggleSound} />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMenuOpen((open) => !open)}
+            className="h-8 w-8 md:hidden"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+          >
+            {menuOpen ? <X /> : <Menu />}
+          </Button>
+        </div>
       </header>
 
       {menuOpen && (
@@ -179,10 +267,7 @@ function Index() {
           {sections.map(([id, label], index) => (
             <button
               key={id}
-              onClick={() => {
-                jumpTo(id);
-                setMenuOpen(false);
-              }}
+              onClick={() => handleMissionClick(id)}
               className="border-b border-border py-5 text-left font-display text-3xl"
             >
               <span className="mr-4 font-mono text-xs">0{index + 1}</span>
@@ -192,13 +277,44 @@ function Index() {
         </div>
       )}
 
-      <aside className="proof-rail" aria-label={`Portfolio exploration ${progress}% complete`}>
-        <span className="vertical-label">PROOF / {String(completed.length).padStart(2, "0")}</span>
-        <div className="rail-track">
-          <i style={{ height: `${progress}%` }} />
+      <ProtocolMeter
+        state={protocol}
+        onStageClick={handleStageClick}
+      />
+
+      {/* Returning session resume badge */}
+      {showResumePrompt && (
+        <div
+          className="fixed bottom-6 right-6 z-40 hidden md:flex items-center gap-2.5 border border-foreground/30 bg-background/90 px-3.5 py-2 font-mono text-[10px] uppercase shadow-xl backdrop-blur animate-in fade-in slide-in-from-bottom-2"
+          role="status"
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
+          <span>RESUME PROTOCOL ({protocol.completed.length}/{PROTOCOL_STAGES.length})</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={resumeNextStage}
+            className="h-6 rounded-none px-2 font-mono text-[9px] uppercase border-foreground/40 hover:bg-foreground hover:text-background"
+          >
+            CONTINUE →
+          </Button>
+          <button
+            onClick={() => setShowResumePrompt(false)}
+            className="ml-1 text-muted-foreground hover:text-foreground p-0.5"
+            aria-label="Dismiss resume prompt"
+          >
+            ✕
+          </button>
         </div>
-        <span className="font-mono text-[10px]">{progress}%</span>
-      </aside>
+      )}
+
+      {/* Mission Unlock Notification Modal */}
+      <MissionUnlock
+        unlockedStage={recentUnlock}
+        totalCompleted={protocol.completed.length}
+        totalStages={PROTOCOL_STAGES.length}
+        onDismiss={() => setRecentUnlock(null)}
+      />
 
       <section id="top" className="hero-section section-shell" data-scroll-section>
         <div className="hero-grid" aria-hidden="true" />
@@ -220,6 +336,7 @@ function Index() {
               size="lg"
               onClick={() => jumpTo("mission-control")}
               className="h-12 rounded-none px-6 font-mono text-xs uppercase"
+              data-cursor-text="ENTER"
             >
               Enter protocol <ArrowDown />
             </Button>
@@ -228,6 +345,7 @@ function Index() {
               size="lg"
               asChild
               className="h-12 rounded-none px-6 font-mono text-xs uppercase"
+              data-cursor-text="RÉSUMÉ"
             >
               <a href={resumeUrl} target="_blank" rel="noreferrer">
                 View résumé <ArrowUpRight />
@@ -238,6 +356,7 @@ function Index() {
               size="lg"
               onClick={() => jumpTo("contact")}
               className="h-12 rounded-none font-mono text-xs uppercase"
+              data-cursor-text="CONTACT"
             >
               Contact
             </Button>
@@ -251,7 +370,7 @@ function Index() {
           ["REPOSITORIES", "14 PUBLIC"],
           ["LEETCODE", <LeetCodeSolvedCount suffix=" SOLVED" />],
           ] satisfies StatRow[]).map(([label, value]) => (
-          <div key={label}>
+          <div key={label} data-cursor-text="FACT">
             <span>{label}</span>
             <strong>{value}</strong>
           </div>
@@ -271,13 +390,18 @@ function Index() {
         </h2>
         <div className="mt-16 border-t border-border">
           {sections.map(([id, label], index) => (
-            <button key={id} className="mission-row group" onClick={() => jumpTo(id)}>
+            <button
+              key={id}
+              className="mission-row group"
+              onClick={() => jumpTo(id)}
+              data-cursor-text="MISSION"
+            >
               <span className="font-mono text-xs">0{index + 1}</span>
               <strong>{label}</strong>
               <span className="hidden font-mono text-[10px] uppercase md:block">
-                {completed.includes(id) ? "Evidence logged" : "Open mission"}
+                {protocol.completed.includes(id as StageId) ? "Evidence logged" : "Open mission"}
               </span>
-              {completed.includes(id) ? (
+              {protocol.completed.includes(id as StageId) ? (
                 <Check />
               ) : (
                 <ChevronRight className="transition-transform group-hover:translate-x-2" />
@@ -299,7 +423,8 @@ function Index() {
                 key={project.id}
                 role="tab"
                 aria-selected={project.id === activeProject}
-                onClick={() => setActiveProject(project.id)}
+                onClick={() => handleProjectClick(project.id)}
+                data-cursor-text="INSPECT"
                 className="project-tab"
               >
                 <span>0{index + 1}</span>
@@ -316,7 +441,16 @@ function Index() {
               </div>
               <h3>{currentProject.name}</h3>
               <p className="project-summary">{currentProject.summary}</p>
-              <SystemGraphic type={currentProject.interaction} />
+              
+              {/* Interactive 3D WebGL Visualization */}
+              <div className="my-5">
+                <SceneProject
+                  type={currentProject.interaction}
+                  projectName={currentProject.name}
+                  metric={currentProject.metric}
+                />
+              </div>
+
               <dl className="project-facts">
                 <div>
                   <dt>Challenge</dt>
@@ -329,7 +463,7 @@ function Index() {
               </dl>
               <div className="mt-7 flex flex-wrap gap-2">
                 {currentProject.stack.map((item) => (
-                  <span className="tech-chip" key={item}>
+                  <span className="tech-chip" key={item} data-cursor-text="TECH">
                     {item}
                   </span>
                 ))}
@@ -341,6 +475,7 @@ function Index() {
                     href={currentProject.repo}
                     target="_blank"
                     rel="noreferrer"
+                    data-cursor-text="REPO"
                   >
                     Source <ArrowUpRight />
                   </a>
@@ -351,6 +486,7 @@ function Index() {
                     href={currentProject.live}
                     target="_blank"
                     rel="noreferrer"
+                    data-cursor-text="LIVE"
                   >
                     Live system <ArrowUpRight />
                   </a>
@@ -379,7 +515,8 @@ function Index() {
               {achievements.map((item, index) => (
                 <button
                   key={item.event}
-                  onClick={() => setActiveAchievement(index)}
+                  onClick={() => handleAchievementClick(index)}
+                  data-cursor-text="REVIEW"
                   className={`achievement-row ${index === activeAchievement ? "is-active" : ""}`}
                 >
                   <span>{item.rank}</span>
@@ -421,6 +558,7 @@ function Index() {
             variant="outline"
             onClick={() => setRecruiterMode((value) => !value)}
             className="rounded-none font-mono text-xs uppercase"
+            data-cursor-text="MODE"
           >
             <Printer /> {recruiterMode ? "Exit recruiter mode" : "Recruiter mode"}
           </Button>
@@ -432,7 +570,7 @@ function Index() {
               <h3>{group.name}</h3>
               <div>
                 {group.skills.map((skill) => (
-                  <span key={skill}>{skill}</span>
+                  <span key={skill} data-cursor-text="SKILL">{skill}</span>
                 ))}
               </div>
             </div>
@@ -462,6 +600,7 @@ function Index() {
               target="_blank"
               rel="noreferrer"
               className="mt-8 inline-flex items-center gap-2 border-b border-current pb-1 font-mono text-xs uppercase"
+              data-cursor-text="GITHUB"
             >
               Inspect GitHub <ArrowUpRight />
             </a>
@@ -475,7 +614,7 @@ function Index() {
               ["80+", "GFG problems"],
               ["9.44", "CGPA"],
             ] satisfies [value: ReactNode, label: string][]).map(([value, label]) => (
-              <div key={label}>
+              <div key={label} data-cursor-text="METRIC">
                 <strong>{value}</strong>
                 <span>{label}</span>
               </div>
@@ -487,13 +626,18 @@ function Index() {
       <section id="contact" className="section-shell inverse-section min-h-[80vh] py-24 md:py-32" data-scroll-section>
         <div className="section-kicker">
           <span>05</span>
-          <span>{completed.length >= 3 ? "Protocol unlocked" : "Establish contact"}</span>
+          <span>{protocol.completed.length >= 3 ? "Protocol unlocked" : "Establish contact"}</span>
         </div>
         <div className="mt-14 max-w-6xl">
-          <p className="font-mono text-xs uppercase">
-            {completed.length >= 3
-              ? "Evidence threshold reached"
-              : "Available for ambitious engineering work"}
+          <p className="font-mono text-xs uppercase flex items-center gap-2">
+            {protocol.completed.length >= 3 ? (
+              <>
+                <Sparkles className="h-3 w-3 text-cyan-400" />
+                <span>Evidence threshold reached · Clearance verified</span>
+              </>
+            ) : (
+              "Available for ambitious engineering work"
+            )}
           </p>
           <h2 className="contact-title">
             LET’S BUILD THE
@@ -507,20 +651,22 @@ function Index() {
             variant="secondary"
             asChild
             className="h-12 rounded-none px-6 font-mono text-xs uppercase"
+            data-cursor-text="EMAIL"
           >
             <a
-  href="https://mail.google.com/mail/?view=cm&fs=1&to=kaushiksharmabusiness%40gmail.com"
-  target="_blank"
-  rel="noreferrer"
->
-  <Mail /> Email me
-</a>
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=kaushiksharmabusiness%40gmail.com"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Mail /> Email me
+            </a>
           </Button>
           <Button
             size="lg"
             variant="outline"
             asChild
             className="h-12 rounded-none border-current bg-transparent px-6 font-mono text-xs uppercase text-inherit hover:bg-background hover:text-foreground"
+            data-cursor-text="LINKEDIN"
           >
             <a href="https://www.linkedin.com/in/meetkaushiksharma" target="_blank" rel="noreferrer">
               <Linkedin /> LinkedIn
@@ -531,6 +677,7 @@ function Index() {
             variant="outline"
             asChild
             className="h-12 rounded-none border-current bg-transparent px-6 font-mono text-xs uppercase text-inherit hover:bg-background hover:text-foreground"
+            data-cursor-text="GITHUB"
           >
             <a href="https://github.com/MeetKaushikSharma" target="_blank" rel="noreferrer">
               <Github /> GitHub
@@ -542,6 +689,14 @@ function Index() {
           <span>Designed as evidence, not decoration.</span>
         </footer>
       </section>
+
+      <EvidenceCollector
+        active={collecting}
+        targetX={collectTarget?.x ?? 0.92}
+        targetY={collectTarget?.y ?? 0.5}
+        label={collectTarget?.label ?? "EVIDENCE"}
+        onDone={handleCollectDone}
+      />
     </main>
   );
 }

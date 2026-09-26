@@ -356,9 +356,10 @@ export function useKineticScroll() {
     /* ─── Proof rail: subtle float ───────────────────────────── */
     const proofRail = document.querySelector<HTMLElement>(".proof-rail");
     if (proofRail) {
-      gsap.set(proofRail, { willChange: "transform" });
+      gsap.set(proofRail, { willChange: "transform", yPercent: -50 });
       gsap.to(proofRail, {
-        y: -10,
+        y: -8,
+        yPercent: -50,
         duration: 2.5,
         repeat: -1,
         yoyo: true,

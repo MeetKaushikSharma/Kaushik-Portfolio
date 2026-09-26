@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import pypdf; print\\('pypdf installed'\\)\")",
+      "Bash(python -c \"import PyPDF2; print\\('PyPDF2 installed'\\)\")",
+      "Bash(pip show *)",
+      "Bash(python *)"
+    ]
+  }
+}

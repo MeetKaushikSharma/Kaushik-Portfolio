@@ -29,10 +29,15 @@ function writeCache(value: number) {
   }
 }
 
-export function useLeetCodeSolved() {
-  const [solved, setSolved] = useState<number>(() => readCache() ?? SNAPSHOT_SOLVED);
+function useLeetCodeSolved() {
+  const [solved, setSolved] = useState<number>(SNAPSHOT_SOLVED);
 
   useEffect(() => {
+    const cached = readCache();
+    if (cached) {
+      setSolved(cached);
+    }
+
     let cancelled = false;
 
     getLeetCodeSolvedCount()

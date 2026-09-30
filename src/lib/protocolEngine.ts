@@ -77,6 +77,7 @@ export const PROTOCOL_STAGES: ProtocolStage[] = [
 export type ProtocolState = {
   completed: StageId[];
   evidenceCollected: number;
+  resumeViewed: boolean;
   lastVisited: number;
   soundEnabled: boolean;
 };
@@ -85,6 +86,7 @@ export function defaultState(): ProtocolState {
   return {
     completed: [],
     evidenceCollected: 0,
+    resumeViewed: false,
     lastVisited: 0,
     soundEnabled: true,
   };
@@ -99,6 +101,7 @@ export function loadProtocol(): ProtocolState {
     return {
       completed: Array.isArray(parsed.completed) ? parsed.completed : [],
       evidenceCollected: typeof parsed.evidenceCollected === "number" ? parsed.evidenceCollected : 0,
+      resumeViewed: Boolean(parsed.resumeViewed),
       lastVisited: typeof parsed.lastVisited === "number" ? parsed.lastVisited : Date.now(),
       soundEnabled: parsed.soundEnabled !== false,
     };
@@ -130,12 +133,44 @@ export function toggleStage(
   };
 }
 
-export function collectEvidence(state: ProtocolState): ProtocolState {
+export function collectEvidence(state: ProtocolState, count = 1): ProtocolState {
   return {
     ...state,
-    evidenceCollected: state.evidenceCollected + 1,
+    evidenceCollected: state.evidenceCollected + count,
     lastVisited: Date.now(),
   };
+}
+
+export function viewResume(state: ProtocolState): ProtocolState {
+  return {
+    ...state,
+    resumeViewed: true,
+    evidenceCollected: state.evidenceCollected + 2,
+    lastVisited: Date.now(),
+  };
+}
+
+export type ClearanceRank = {
+  level: number;
+  title: string;
+  code: string;
+};
+
+export function getClearanceRank(state: ProtocolState): ClearanceRank {
+  const score = state.completed.length + (state.resumeViewed ? 1 : 0);
+  if (score >= 5) {
+    return { level: 5, title: "MASTER ARCHITECT", code: "LVL-5 // COMMAND" };
+  }
+  if (score >= 4) {
+    return { level: 4, title: "SYSTEMS SPECIALIST", code: "LVL-4 // LEAD" };
+  }
+  if (score >= 3) {
+    return { level: 3, title: "FIELD ENGINEER", code: "LVL-3 // OPERATIVE" };
+  }
+  if (score >= 2) {
+    return { level: 2, title: "VERIFIED OPERATIVE", code: "LVL-2 // CLEARED" };
+  }
+  return { level: 1, title: "WITNESS OBSERVER", code: "LVL-1 // ENTRY" };
 }
 
 export function setSound(state: ProtocolState, enabled: boolean): ProtocolState {

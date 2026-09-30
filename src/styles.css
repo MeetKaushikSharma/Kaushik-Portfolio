@@ -59,7 +59,7 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-display: "Archivo Black", sans-serif;
+  --font-display: "Amatic SC", cursive, sans-serif;
   --font-sans: "Work Sans", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
 }
@@ -207,7 +207,8 @@ main {
 button,
 a[role="button"],
 [class*="Button"],
-.inline-flex {
+.hero-btn,
+.hero-btn-outline {
   transition: transform var(--hover-duration) var(--ease-elastic-out),
               box-shadow var(--hover-duration) var(--ease-smooth-out),
               background-color 0.2s ease,
@@ -217,12 +218,14 @@ a[role="button"],
 }
 button:hover,
 a[role="button"]:hover,
-.inline-flex:hover {
+.hero-btn:hover,
+.hero-btn-outline:hover {
   transform: translate3d(0, -2px, 4px) scale3d(1.02, 1.02, 1);
 }
 button:active,
 a[role="button"]:active,
-.inline-flex:active {
+.hero-btn:active,
+.hero-btn-outline:active {
   transform: translate3d(0, 0, 0) scale3d(0.98, 0.98, 1);
   transition-duration: 0.1s;
 }
@@ -444,9 +447,10 @@ a[role="button"]:active,
 }
 .hero-name {
   font-family: var(--font-display);
-  font-size: clamp(4rem, 13vw, 12rem);
-  line-height: 0.78;
-  letter-spacing: 0;
+  font-weight: 700;
+  font-size: clamp(4.5rem, 15vw, 13.5rem);
+  line-height: 0.82;
+  letter-spacing: 0.04em;
 }
 .status-dot::before {
   content: "";
@@ -542,9 +546,10 @@ a[role="button"]:active,
 }
 .section-title {
   font-family: var(--font-display);
-  font-size: clamp(2.6rem, 7vw, 7.5rem);
-  line-height: 0.9;
-  letter-spacing: 0;
+  font-weight: 700;
+  font-size: clamp(3rem, 8.5vw, 8.5rem);
+  line-height: 0.88;
+  letter-spacing: 0.03em;
 }
 .mission-row {
   width: 100%;
@@ -558,7 +563,9 @@ a[role="button"]:active,
 }
 .mission-row strong {
   font-family: var(--font-display);
-  font-size: clamp(1.25rem, 3vw, 2.7rem);
+  font-weight: 700;
+  font-size: clamp(1.45rem, 3.5vw, 3rem);
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 .project-layout {
@@ -594,7 +601,9 @@ a[role="button"]:active,
 }
 .project-tab strong {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 .project-tab small {
@@ -606,8 +615,10 @@ a[role="button"]:active,
 .project-stage h3 {
   margin-top: 1rem;
   font-family: var(--font-display);
-  font-size: clamp(3rem, 8vw, 8rem);
+  font-weight: 700;
+  font-size: clamp(3.5rem, 9.5vw, 9rem);
   line-height: 0.85;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   overflow-wrap: anywhere;
 }
@@ -810,13 +821,17 @@ a[role="button"]:active,
 }
 .mega-number {
   font-family: var(--font-display);
-  font-size: clamp(7rem, 18vw, 14rem);
-  line-height: 0.7;
+  font-weight: 700;
+  font-size: clamp(8rem, 20vw, 15rem);
+  line-height: 0.72;
+  letter-spacing: 0.03em;
 }
 .achievement-detail h3 {
   margin-top: 2rem;
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 5vw, 5rem);
+  font-weight: 700;
+  font-size: clamp(2.8rem, 6vw, 5.5rem);
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 .achievement-detail p:not(.font-mono) {
@@ -831,7 +846,9 @@ a[role="button"]:active,
   align-items: end;
   gap: 1rem;
   font-family: var(--font-display);
-  font-size: 4rem;
+  font-weight: 700;
+  font-size: 4.5rem;
+  letter-spacing: 0.04em;
   line-height: 0.8;
 }
 .winner-mark span {
@@ -852,7 +869,9 @@ a[role="button"]:active,
 }
 .skill-group h3 {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-weight: 700;
+  font-size: 1.45rem;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 .skill-group div {
@@ -887,7 +906,9 @@ a[role="button"]:active,
 }
 .evidence-stats strong {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 6vw, 4.8rem);
+  letter-spacing: 0.03em;
 }
 .evidence-stats span {
   font-family: var(--font-mono);
@@ -897,8 +918,10 @@ a[role="button"]:active,
 .contact-title {
   margin-top: 1rem;
   font-family: var(--font-display);
-  font-size: clamp(3.5rem, 11vw, 10rem);
+  font-weight: 700;
+  font-size: clamp(4.2rem, 13vw, 12rem);
   line-height: 0.82;
+  letter-spacing: 0.04em;
 }
 .recruiter-mode .hero-grid,
 .recruiter-mode .system-graphic,

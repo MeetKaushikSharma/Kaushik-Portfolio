@@ -97,6 +97,28 @@ export function useSoundDesign() {
       play([1046.5], 0.35, "triangle", 0.08, 1318.5, 0.27);
     },
     whoosh: () => play([330], 0.25, "sine", 0.05, 80, 0.0),
+
+    // Advanced tactical sounds for deep gamification
+    protocolEngage: () => {
+      // Cybernetic startup charge sweep + resonant confirmation
+      play([130], 0.2, "sawtooth", 0.04, 440);
+      play([440, 660, 880], 0.24, "triangle", 0.07, 1320, 0.1);
+      play([1320, 1760], 0.18, "sine", 0.06, null, 0.22);
+    },
+    dossierDecrypted: () => {
+      // Classified decryption telemetry burst (rapid 4-step arpeggio)
+      play([1046.5], 0.07, "triangle", 0.06, null, 0);
+      play([1318.5], 0.07, "triangle", 0.06, null, 0.05);
+      play([1567.98], 0.07, "triangle", 0.07, null, 0.1);
+      play([2093.0], 0.28, "sine", 0.08, 2349.3, 0.15);
+      play([523.25], 0.22, "sine", 0.04, null, 0.16);
+    },
+    telemetryClick: () => play([1400], 0.04, "square", 0.025, 700),
+    modeSwitch: () => {
+      play([380], 0.08, "triangle", 0.05, 760);
+      play([760], 0.1, "sine", 0.06, null, 0.06);
+    },
+    warpJump: () => play([440], 0.18, "sine", 0.04, 180),
   };
 
   // Ambient low hum (very quiet, ducked under content)

@@ -5,8 +5,16 @@ import { useSoundDesign } from "@/hooks/useSoundDesign";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import type { ProtocolStage } from "@/lib/protocolEngine";
 
+export type MissionAlert = {
+  number: string;
+  title: string;
+  description: string;
+  badge?: string;
+  isSpecial?: boolean;
+};
+
 interface MissionUnlockProps {
-  unlockedStage: ProtocolStage | null;
+  unlockedStage: ProtocolStage | MissionAlert | null;
   totalCompleted: number;
   totalStages: number;
   onDismiss: () => void;
@@ -100,8 +108,8 @@ export function MissionUnlock({
           <span className="font-mono text-xs font-bold text-foreground">
             STAGE {unlockedStage.number} // {unlockedStage.title.toUpperCase()}
           </span>
-          <span className="inline-block rounded border border-foreground/40 px-1 py-0.2 font-mono text-[9px] uppercase">
-            LOGGED
+          <span className="inline-block rounded border border-foreground/40 px-1.5 py-0.5 font-mono text-[9px] uppercase">
+            {"badge" in unlockedStage && unlockedStage.badge ? unlockedStage.badge : "LOGGED"}
           </span>
         </div>
         <p className="mt-1 font-mono text-xs text-muted-foreground">

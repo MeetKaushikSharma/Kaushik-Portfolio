@@ -21,7 +21,7 @@ import { CustomCursor } from "@/components/ui/CustomCursor";
 import { SoundToggle } from "@/components/ui/SoundToggle";
 import { EvidenceCollector } from "@/components/gamification/EvidenceCollector";
 import { ProtocolMeter } from "@/components/gamification/ProtocolMeter";
-import { MissionUnlock } from "@/components/gamification/MissionUnlock";
+import { MissionUnlock, type MissionAlert } from "@/components/gamification/MissionUnlock";
 import {
   PROTOCOL_STAGES,
   collectEvidence,
@@ -30,6 +30,8 @@ import {
   saveProtocol,
   stageById,
   toggleStage,
+  viewResume,
+  getClearanceRank,
   type ProtocolStage,
   type ProtocolState,
   type StageId,
@@ -93,7 +95,7 @@ function Index() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [collecting, setCollecting] = useState(false);
   const [collectTarget, setCollectTarget] = useState<{ x: number; y: number; label: string } | null>(null);
-  const [recentUnlock, setRecentUnlock] = useState<ProtocolStage | null>(null);
+  const [recentUnlock, setRecentUnlock] = useState<ProtocolStage | MissionAlert | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const isHydratedRef = useRef(false);
 
@@ -172,7 +174,7 @@ function Index() {
     setCollecting(true);
     setCollectTarget({ x: 0.92, y: 0.5, label: project.name.toUpperCase() });
     setProtocol((current) => collectEvidence(current));
-    sounds.click();
+    sounds.telemetryClick();
   }
 
   function handleAchievementClick(index: number) {
@@ -180,7 +182,52 @@ function Index() {
     setCollecting(true);
     setCollectTarget({ x: 0.92, y: 0.5, label: "EVIDENCE" });
     setProtocol((current) => collectEvidence(current));
-    sounds.click();
+    sounds.telemetryClick();
+  }
+
+  function handleEnterProtocol() {
+    sounds.protocolEngage();
+    setCollecting(true);
+    setCollectTarget({ x: 0.5, y: 0.45, label: "PROTOCOL ENGAGED" });
+    setProtocol((current) => {
+      const updated = toggleStage(current, "hero");
+      return collectEvidence(updated, 1);
+    });
+    setTimeout(() => {
+      jumpTo("mission-control");
+    }, 180);
+  }
+
+  function handleViewResume(e: React.MouseEvent) {
+    e.preventDefault();
+    sounds.dossierDecrypted();
+    setCollecting(true);
+    setCollectTarget({ x: 0.5, y: 0.45, label: "DOSSIER DECRYPTED" });
+    setProtocol((current) => viewResume(current));
+    setRecentUnlock({
+      number: "SEC",
+      title: "PERSONNEL DOSSIER ACCESSED",
+      description: "Classified engineering credentials accessed. Clearance level increased.",
+      badge: "+2 EVIDENCE",
+      isSpecial: true,
+    });
+    window.open(resumeUrl, "_blank", "noopener,noreferrer");
+  }
+
+  function handleRecruiterToggle() {
+    sounds.modeSwitch();
+    setRecruiterMode((value) => !value);
+  }
+
+  function handleTechChipClick(tech: string) {
+    sounds.telemetryClick();
+    setCollecting(true);
+    setCollectTarget({ x: 0.92, y: 0.5, label: tech.toUpperCase() });
+    setProtocol((current) => collectEvidence(current, 1));
+  }
+
+  function handleExternalClick() {
+    sounds.telemetryClick();
   }
 
   function handleCollectDone() {
@@ -191,13 +238,13 @@ function Index() {
   function handleMissionClick(id: string) {
     jumpTo(id);
     setMenuOpen(false);
-    sounds.hover();
+    sounds.warpJump();
   }
 
   function handleStageClick(stageId: StageId) {
     const sectionId = stageToSection[stageId] ?? "top";
     jumpTo(sectionId);
-    sounds.hover();
+    sounds.warpJump();
   }
 
   function toggleSound() {
@@ -215,7 +262,7 @@ function Index() {
       jumpTo(stageToSection[nextStage.id]);
     }
     setShowResumePrompt(false);
-    sounds.hover();
+    sounds.warpJump();
   }
 
   return (
@@ -225,8 +272,11 @@ function Index() {
 
       <header className="fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:px-8">
         <button
-          className="font-mono text-xs font-bold uppercase tracking-widest"
-          onClick={() => jumpTo("top")}
+          className="font-mono text-xs font-bold uppercase tracking-widest cursor-pointer"
+          onClick={() => {
+            sounds.warpJump();
+            jumpTo("top");
+          }}
           aria-label="Return to top"
           data-cursor-text="TOP"
         >
@@ -239,7 +289,7 @@ function Index() {
               onClick={() => {
                 jumpTo(id);
                 setMenuOpen(false);
-                sounds.hover();
+                sounds.warpJump();
               }}
               className="nav-link"
               data-cursor-text="GOTO"
@@ -334,28 +384,29 @@ function Index() {
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Button
               size="lg"
-              onClick={() => jumpTo("mission-control")}
-              className="h-12 rounded-none px-6 font-mono text-xs uppercase"
-              data-cursor-text="ENTER"
+              onClick={handleEnterProtocol}
+              className="h-12 rounded-none px-6 font-mono text-xs uppercase cursor-pointer"
+              data-cursor-text="ENGAGE"
             >
               Enter protocol <ArrowDown />
             </Button>
             <Button
               variant="outline"
               size="lg"
-              asChild
-              className="h-12 rounded-none px-6 font-mono text-xs uppercase"
-              data-cursor-text="RÉSUMÉ"
+              onClick={handleViewResume}
+              className="h-12 rounded-none px-6 font-mono text-xs uppercase cursor-pointer"
+              data-cursor-text="DECRYPT"
             >
-              <a href={resumeUrl} target="_blank" rel="noreferrer">
-                View résumé <ArrowUpRight />
-              </a>
+              View résumé <ArrowUpRight />
             </Button>
             <Button
               variant="ghost"
               size="lg"
-              onClick={() => jumpTo("contact")}
-              className="h-12 rounded-none font-mono text-xs uppercase"
+              onClick={() => {
+                sounds.warpJump();
+                jumpTo("contact");
+              }}
+              className="h-12 rounded-none font-mono text-xs uppercase cursor-pointer"
               data-cursor-text="CONTACT"
             >
               Contact
@@ -463,9 +514,15 @@ function Index() {
               </dl>
               <div className="mt-7 flex flex-wrap gap-2">
                 {currentProject.stack.map((item) => (
-                  <span className="tech-chip" key={item} data-cursor-text="TECH">
+                  <button
+                    type="button"
+                    className="tech-chip cursor-pointer text-left"
+                    key={item}
+                    onClick={() => handleTechChipClick(item)}
+                    data-cursor-text="+XP"
+                  >
                     {item}
-                  </span>
+                  </button>
                 ))}
               </div>
               <div className="mt-8 flex flex-wrap gap-5 font-mono text-xs uppercase">
@@ -475,6 +532,7 @@ function Index() {
                     href={currentProject.repo}
                     target="_blank"
                     rel="noreferrer"
+                    onClick={handleExternalClick}
                     data-cursor-text="REPO"
                   >
                     Source <ArrowUpRight />
@@ -486,6 +544,7 @@ function Index() {
                     href={currentProject.live}
                     target="_blank"
                     rel="noreferrer"
+                    onClick={handleExternalClick}
                     data-cursor-text="LIVE"
                   >
                     Live system <ArrowUpRight />
@@ -556,8 +615,8 @@ function Index() {
           </div>
           <Button
             variant="outline"
-            onClick={() => setRecruiterMode((value) => !value)}
-            className="rounded-none font-mono text-xs uppercase"
+            onClick={handleRecruiterToggle}
+            className="rounded-none font-mono text-xs uppercase cursor-pointer"
             data-cursor-text="MODE"
           >
             <Printer /> {recruiterMode ? "Exit recruiter mode" : "Recruiter mode"}
@@ -568,9 +627,17 @@ function Index() {
             <div className="skill-group" key={group.name}>
               <span className="font-mono text-[10px]">0{index + 1}</span>
               <h3>{group.name}</h3>
-              <div>
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5">
                 {group.skills.map((skill) => (
-                  <span key={skill} data-cursor-text="SKILL">{skill}</span>
+                  <button
+                    type="button"
+                    key={skill}
+                    onClick={() => handleTechChipClick(skill)}
+                    data-cursor-text="+XP"
+                    className="cursor-pointer hover:text-foreground text-muted-foreground transition-colors py-0.5 text-left"
+                  >
+                    {skill}
+                  </button>
                 ))}
               </div>
             </div>
@@ -599,7 +666,8 @@ function Index() {
               href="https://github.com/MeetKaushikSharma"
               target="_blank"
               rel="noreferrer"
-              className="mt-8 inline-flex items-center gap-2 border-b border-current pb-1 font-mono text-xs uppercase"
+              onClick={handleExternalClick}
+              className="mt-8 inline-flex items-center gap-2 border-b border-current pb-1 font-mono text-xs uppercase cursor-pointer"
               data-cursor-text="GITHUB"
             >
               Inspect GitHub <ArrowUpRight />
@@ -614,7 +682,12 @@ function Index() {
               ["80+", "GFG problems"],
               ["9.44", "CGPA"],
             ] satisfies [value: ReactNode, label: string][]).map(([value, label]) => (
-              <div key={label} data-cursor-text="METRIC">
+              <div
+                key={label}
+                data-cursor-text="LOG"
+                onClick={() => handleTechChipClick(label)}
+                className="cursor-pointer transition-colors hover:bg-muted/40"
+              >
                 <strong>{value}</strong>
                 <span>{label}</span>
               </div>
@@ -650,13 +723,14 @@ function Index() {
             size="lg"
             variant="secondary"
             asChild
-            className="h-12 rounded-none px-6 font-mono text-xs uppercase"
+            className="h-12 rounded-none px-6 font-mono text-xs uppercase cursor-pointer"
             data-cursor-text="EMAIL"
           >
             <a
               href="https://mail.google.com/mail/?view=cm&fs=1&to=kaushiksharmabusiness%40gmail.com"
               target="_blank"
               rel="noreferrer"
+              onClick={handleExternalClick}
             >
               <Mail /> Email me
             </a>
@@ -665,10 +739,15 @@ function Index() {
             size="lg"
             variant="outline"
             asChild
-            className="h-12 rounded-none border-current bg-transparent px-6 font-mono text-xs uppercase text-inherit hover:bg-background hover:text-foreground"
+            className="h-12 rounded-none border-current bg-transparent px-6 font-mono text-xs uppercase text-inherit hover:bg-background hover:text-foreground cursor-pointer"
             data-cursor-text="LINKEDIN"
           >
-            <a href="https://www.linkedin.com/in/meetkaushiksharma" target="_blank" rel="noreferrer">
+            <a
+              href="https://www.linkedin.com/in/meetkaushiksharma"
+              target="_blank"
+              rel="noreferrer"
+              onClick={handleExternalClick}
+            >
               <Linkedin /> LinkedIn
             </a>
           </Button>
@@ -676,10 +755,15 @@ function Index() {
             size="lg"
             variant="outline"
             asChild
-            className="h-12 rounded-none border-current bg-transparent px-6 font-mono text-xs uppercase text-inherit hover:bg-background hover:text-foreground"
+            className="h-12 rounded-none border-current bg-transparent px-6 font-mono text-xs uppercase text-inherit hover:bg-background hover:text-foreground cursor-pointer"
             data-cursor-text="GITHUB"
           >
-            <a href="https://github.com/MeetKaushikSharma" target="_blank" rel="noreferrer">
+            <a
+              href="https://github.com/MeetKaushikSharma"
+              target="_blank"
+              rel="noreferrer"
+              onClick={handleExternalClick}
+            >
               <Github /> GitHub
             </a>
           </Button>

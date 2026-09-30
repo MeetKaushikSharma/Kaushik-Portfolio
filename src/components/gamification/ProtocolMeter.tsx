@@ -4,6 +4,7 @@ import {
   type ProtocolState,
   type StageId,
   stageById,
+  getClearanceRank,
 } from "@/lib/protocolEngine";
 
 interface ProtocolMeterProps {
@@ -27,6 +28,7 @@ export function ProtocolMeter({ state, onStageHover, onStageClick }: ProtocolMet
 
   const activeStage = hovered ? stageById(hovered) : null;
   const percentage = Math.round((state.completed.length / PROTOCOL_STAGES.length) * 100);
+  const rank = getClearanceRank(state);
 
   return (
     <aside
@@ -63,9 +65,17 @@ export function ProtocolMeter({ state, onStageHover, onStageClick }: ProtocolMet
         })}
       </div>
 
-      <span className="font-mono text-[10px] tracking-wider font-semibold">
-        {percentage}%
-      </span>
+      <div className="flex flex-col items-center gap-0.5">
+        <span className="font-mono text-[10px] tracking-wider font-semibold">
+          {percentage}%
+        </span>
+        <span
+          className="font-mono text-[8px] uppercase tracking-wider text-muted-foreground border-t border-border/50 pt-0.5"
+          title={`Clearance: ${rank.title}`}
+        >
+          {rank.code.split(" ")[0]}
+        </span>
+      </div>
 
       {activeStage && (
         <div className="protocol-tooltip" role="tooltip">

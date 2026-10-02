@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 .lovable
 .tanstack
+.env
 
 node_modules
 dist
@@ -32,3 +33,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+reference

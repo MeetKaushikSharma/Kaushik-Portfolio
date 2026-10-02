@@ -19,7 +19,7 @@ export const projects: Project[] = [
     label: "Competitive systems",
     summary: "A full-stack arena where code is written, judged, ranked, and explained by AI.",
     challenge: "Make competitive programming feel immediate without compromising secure execution.",
-    result: "Dual-judge validation, a 365-day activity map, tiered rankings, and contextual AI tutoring.",
+    result: "Judge validation, a 365-day activity map, tiered rankings, and contextual AI tutoring.",
     metric: "15+ languages",
     stack: ["React 19", "Node.js", "MongoDB", "Redis", "Judge0", "Gemini"],
     repo: "https://github.com/MeetKaushikSharma/CodeArena",

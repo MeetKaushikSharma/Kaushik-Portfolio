@@ -19,6 +19,8 @@ import { AtmosphereCanvas } from "@/components/canvas/AtmosphereCanvas";
 import { SceneProject } from "@/components/canvas/SceneProject";
 import { CustomCursor } from "@/components/ui/CustomCursor";
 import { SoundToggle } from "@/components/ui/SoundToggle";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { CloudThemeTransition } from "@/components/theme/CloudThemeTransition";
 import { EvidenceCollector } from "@/components/gamification/EvidenceCollector";
 import { ProtocolMeter } from "@/components/gamification/ProtocolMeter";
 import { MissionUnlock, type MissionAlert } from "@/components/gamification/MissionUnlock";
@@ -40,6 +42,7 @@ import resumeUrl from "@/assets/Kaushik_Resume.pdf";
 import { achievements, projects, skillGroups } from "@/lib/portfolio-data";
 import { useKineticScroll } from "@/hooks/useKineticScroll";
 import { useSoundDesign } from "@/hooks/useSoundDesign";
+import { useTheme } from "@/hooks/useTheme";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -100,6 +103,15 @@ function Index() {
   const isHydratedRef = useRef(false);
 
   const { enabled: soundEnabled, setEnabled, sounds } = useSoundDesign();
+  const { theme, isTransitioning, targetTheme, startToggle, commitSwap, finishTransition } = useTheme({
+    onThemeChange: (newTheme) => {
+      if (newTheme === "dark") {
+        sounds.themeDark();
+      } else {
+        sounds.themeLight();
+      }
+    },
+  });
   const currentProject = useMemo(
     () => projects.find((project) => project.id === activeProject) ?? projects[0],
     [activeProject],
@@ -267,10 +279,17 @@ function Index() {
 
   return (
     <main className={recruiterMode ? "recruiter-mode" : ""}>
+      <CloudThemeTransition
+        theme={theme}
+        isTransitioning={isTransitioning}
+        targetTheme={targetTheme}
+        onCommitSwap={commitSwap}
+        onFinish={finishTransition}
+      />
       <AtmosphereCanvas intensity={1.0} />
       <CustomCursor />
 
-      <header className="fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:px-8">
+      <header className="fixed top-3 left-4 right-4 z-[99999] flex h-13 items-center justify-between rounded-2xl border border-border/60 bg-background/85 px-4 shadow-lg shadow-black/5 backdrop-blur-md dark:shadow-black/25 md:left-8 md:right-8 md:px-6">
         <button
           className="font-mono text-xs font-bold uppercase tracking-widest cursor-pointer"
           onClick={() => {
@@ -299,6 +318,11 @@ function Index() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
+          <ThemeToggle
+            theme={theme}
+            onToggle={startToggle}
+            isTransitioning={isTransitioning}
+          />
           <SoundToggle enabled={soundEnabled} onToggle={toggleSound} />
           <Button
             variant="ghost"
@@ -313,7 +337,7 @@ function Index() {
       </header>
 
       {menuOpen && (
-        <div className="fixed inset-0 z-40 flex flex-col justify-center bg-background px-8 pt-14 md:hidden">
+        <div className="fixed inset-0 z-[99998] flex flex-col justify-center bg-background/95 px-8 pt-20 backdrop-blur-md md:hidden">
           {sections.map(([id, label], index) => (
             <button
               key={id}
@@ -368,7 +392,7 @@ function Index() {
 
       <section id="top" className="hero-section section-shell" data-scroll-section>
         <div className="hero-grid" aria-hidden="true" />
-        <div className="relative z-10 flex items-start justify-between gap-4 pt-20 font-mono text-[10px] uppercase md:text-xs">
+        <div className="relative z-10 flex items-start justify-between gap-4 pt-22 font-mono text-[10px] uppercase md:pt-24 md:text-xs">
           <span>Portfolio / 2026</span>
           <span className="status-dot">Available for opportunities</span>
         </div>

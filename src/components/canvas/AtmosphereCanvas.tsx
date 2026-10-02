@@ -75,6 +75,23 @@ export function AtmosphereCanvas({
     geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
     geometry.setAttribute("seed", new THREE.BufferAttribute(seeds, 1));
 
+    const updateThemeColors = () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      const base = isDark ? 0.9 : 0.15;
+      const colorAttr = geometry.getAttribute("color") as THREE.BufferAttribute;
+      if (!colorAttr) return;
+      const arr = colorAttr.array as Float32Array;
+      for (let i = 0; i < particleCount; i++) {
+        const c = base + (Math.random() - 0.5) * 0.1;
+        arr[i * 3] = c;
+        arr[i * 3 + 1] = c;
+        arr[i * 3 + 2] = c;
+      }
+      colorAttr.needsUpdate = true;
+    };
+
+    window.addEventListener("ks-theme-change", updateThemeColors);
+
     // Particle Shader Material
     const particleMaterial = new THREE.ShaderMaterial({
       uniforms: {
@@ -214,6 +231,7 @@ export function AtmosphereCanvas({
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
+      window.removeEventListener("ks-theme-change", updateThemeColors);
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }

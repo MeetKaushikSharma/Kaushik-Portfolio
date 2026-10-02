@@ -119,6 +119,22 @@ export function useSoundDesign() {
       play([760], 0.1, "sine", 0.06, null, 0.06);
     },
     warpJump: () => play([440], 0.18, "sine", 0.04, 180),
+
+    // Cloud theme transition sounds
+    themeLight: () => {
+      // Daybreak / golden hour celestial chime
+      play([587.33], 0.16, "triangle", 0.05, 739.99);
+      play([739.99], 0.16, "sine", 0.05, 880.0, 0.08);
+      play([1174.66], 0.25, "triangle", 0.06, 1479.98, 0.16);
+      play([1760.0], 0.35, "sine", 0.07, null, 0.24);
+    },
+    themeDark: () => {
+      // Twilight / cosmic night atmospheric sweep
+      play([220], 0.28, "sawtooth", 0.035, 110);
+      play([164.81], 0.35, "triangle", 0.05, 82.41, 0.06);
+      play([523.25, 392.0], 0.32, "sine", 0.045, null, 0.14);
+      play([130.81], 0.45, "sine", 0.05, 65.41, 0.22);
+    },
   };
 
   // Ambient low hum (very quiet, ducked under content)

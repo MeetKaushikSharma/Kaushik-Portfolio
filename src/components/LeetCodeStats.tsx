@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getLeetCodeSolvedCount } from "@/lib/leetcode-server";
 
 const CACHE_KEY = "lc_solved_meetkaushik";
-const SNAPSHOT_SOLVED = 360;
+const SNAPSHOT_SOLVED = 384;
 
 type LeetCodeSolvedCountProps = {
   className?: string;

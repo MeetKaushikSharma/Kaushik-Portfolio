@@ -39,6 +39,7 @@ import {
   type StageId,
 } from "@/lib/protocolEngine";
 import resumeUrl from "@/assets/Kaushik_Resume.pdf";
+import heroVideoUrl from "@/assets/Hero_main_video.mp4";
 import { achievements, projects, skillGroups } from "@/lib/portfolio-data";
 import { useKineticScroll } from "@/hooks/useKineticScroll";
 import { useSoundDesign } from "@/hooks/useSoundDesign";
@@ -391,7 +392,18 @@ function Index() {
       />
 
       <section id="top" className="hero-section section-shell" data-scroll-section>
-        <div className="hero-grid" aria-hidden="true" />
+        {/* Video background */}
+        <video
+          className="hero-video-bg"
+          src={heroVideoUrl}
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-hidden="true"
+        />
+        {/* Vignette + readability scrim */}
+        <div className="hero-vignette" aria-hidden="true" />
         <div className="relative z-10 flex items-start justify-between gap-4 pt-22 font-mono text-[10px] uppercase md:pt-24 md:text-xs">
           <span>Portfolio / 2026</span>
           <span className="status-dot">Available for opportunities</span>
@@ -418,7 +430,7 @@ function Index() {
               variant="outline"
               size="lg"
               onClick={handleViewResume}
-              className="h-12 rounded-none px-6 font-mono text-xs uppercase cursor-pointer"
+              className="h-12 rounded-none px-6 font-mono text-xs uppercase cursor-pointer border-white/80 text-black bg-white "
               data-cursor-text="DECRYPT"
             >
               View résumé <ArrowUpRight />

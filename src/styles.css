@@ -1,4 +1,4 @@
-@import "tailwindcss" source(none); 
+@import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
 
@@ -156,6 +156,7 @@ dialog.cloud-transition-dialog {
   pointer-events: none;
   z-index: 2147483647;
 }
+
 dialog.cloud-transition-dialog::backdrop {
   background: transparent !important;
 }
@@ -167,15 +168,19 @@ html.lenis,
 html.lenis body {
   height: auto;
 }
+
 .lenis.lenis-smooth {
   scroll-behavior: auto !important;
 }
+
 .lenis.lenis-smooth [data-lenis-prevent] {
   overscroll-behavior: contain;
 }
+
 .lenis.lenis-stopped {
   overflow: hidden;
 }
+
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
@@ -217,13 +222,15 @@ main {
 /* Navigation links: elastic underline with subtle lift */
 .nav-link {
   transition: transform var(--hover-duration) var(--ease-elastic-out),
-              color var(--hover-duration) var(--ease-smooth-out);
+    color var(--hover-duration) var(--ease-smooth-out);
   transform: translate3d(0, 0, 0);
   will-change: transform;
 }
+
 .nav-link:hover {
   transform: translate3d(0, -2px, 0);
 }
+
 .nav-link::after {
   transition: right 0.35s var(--ease-elastic-out) !important;
 }
@@ -235,18 +242,20 @@ a[role="button"],
 .hero-btn,
 .hero-btn-outline {
   transition: transform var(--hover-duration) var(--ease-elastic-out),
-              box-shadow var(--hover-duration) var(--ease-smooth-out),
-              background-color 0.2s ease,
-              color 0.2s ease,
-              border-color 0.2s ease;
+    box-shadow var(--hover-duration) var(--ease-smooth-out),
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
   transform: translate3d(0, 0, 0);
 }
+
 button:hover,
 a[role="button"]:hover,
 .hero-btn:hover,
 .hero-btn-outline:hover {
   transform: translate3d(0, -2px, 4px) scale3d(1.02, 1.02, 1);
 }
+
 button:active,
 a[role="button"]:active,
 .hero-btn:active,
@@ -258,10 +267,11 @@ a[role="button"]:active,
 /* Mission rows: elastic slide + 3D tilt on hover */
 .mission-row {
   transition: transform var(--hover-duration) var(--ease-elastic-out),
-              background-color 0.3s ease;
+    background-color 0.3s ease;
   transform: translate3d(0, 0, 0);
   transform-style: preserve-3d;
 }
+
 .mission-row:hover {
   transform: translate3d(8px, 0, 0) rotateY(-1deg);
   background-color: color-mix(in oklab, var(--foreground) 4%, transparent);
@@ -270,10 +280,11 @@ a[role="button"]:active,
 /* Project tabs: elastic indent + subtle 3D */
 .project-tab {
   transition: opacity 0.2s ease,
-              padding 0.3s var(--ease-elastic-out),
-              transform var(--hover-duration) var(--ease-elastic-out);
+    padding 0.3s var(--ease-elastic-out),
+    transform var(--hover-duration) var(--ease-elastic-out);
   transform: translate3d(0, 0, 0);
 }
+
 .project-tab:hover {
   transform: translate3d(6px, 0, 0);
   opacity: 0.8;
@@ -282,9 +293,10 @@ a[role="button"]:active,
 /* Achievement rows: elastic slide */
 .achievement-row {
   transition: opacity 0.25s ease,
-              transform var(--hover-duration) var(--ease-elastic-out);
+    transform var(--hover-duration) var(--ease-elastic-out);
   transform: translate3d(0, 0, 0);
 }
+
 .achievement-row:hover {
   transform: translate3d(6px, 0, 0);
 }
@@ -292,10 +304,11 @@ a[role="button"]:active,
 /* Tech chips: elastic pop on hover */
 .tech-chip {
   transition: transform var(--hover-duration) var(--ease-elastic-out),
-              background-color 0.25s ease,
-              border-color 0.25s ease;
+    background-color 0.25s ease,
+    border-color 0.25s ease;
   transform: translate3d(0, 0, 0);
 }
+
 .tech-chip:hover {
   transform: translate3d(0, -3px, 6px) scale3d(1.08, 1.08, 1);
   background-color: var(--foreground);
@@ -306,9 +319,10 @@ a[role="button"]:active,
 /* Text links: elastic lift */
 .text-link {
   transition: transform var(--hover-duration) var(--ease-elastic-out),
-              gap 0.3s var(--ease-elastic-out);
+    gap 0.3s var(--ease-elastic-out);
   transform: translate3d(0, 0, 0);
 }
+
 .text-link:hover {
   transform: translate3d(0, -2px, 0);
   gap: 0.6rem;
@@ -317,9 +331,10 @@ a[role="button"]:active,
 /* Evidence stats: elastic card lift */
 .evidence-stats div {
   transition: transform var(--hover-duration) var(--ease-elastic-out),
-              box-shadow 0.3s ease;
+    box-shadow 0.3s ease;
   transform: translate3d(0, 0, 0);
 }
+
 .evidence-stats div:hover {
   transform: translate3d(0, -4px, 8px) scale3d(1.03, 1.03, 1);
   box-shadow: 0 12px 40px -12px color-mix(in oklab, var(--foreground) 15%, transparent);
@@ -328,9 +343,10 @@ a[role="button"]:active,
 /* Skill groups: subtle slide on hover */
 .skill-group {
   transition: transform var(--hover-duration) var(--ease-elastic-out),
-              background-color 0.3s ease;
+    background-color 0.3s ease;
   transform: translate3d(0, 0, 0);
 }
+
 .skill-group:hover {
   transform: translate3d(4px, 0, 0);
   background-color: color-mix(in oklab, var(--foreground) 3%, transparent);
@@ -339,10 +355,11 @@ a[role="button"]:active,
 /* Achievement detail: 3D hover tilt */
 .achievement-detail {
   transition: transform 0.6s var(--ease-elastic-out),
-              box-shadow 0.4s ease;
+    box-shadow 0.4s ease;
   transform: translate3d(0, 0, 0);
   transform-style: preserve-3d;
 }
+
 .achievement-detail:hover {
   transform: translate3d(0, -4px, 10px) rotateX(-1deg) rotateY(2deg);
   box-shadow: 0 20px 60px -20px color-mix(in oklab, var(--foreground) 12%, transparent);
@@ -365,6 +382,7 @@ a[role="button"]:active,
 .stamp {
   transition: transform var(--hover-duration) var(--ease-elastic-out);
 }
+
 .stamp:hover {
   transform: rotate(-3deg) scale3d(1.1, 1.1, 1);
 }
@@ -374,6 +392,7 @@ a[role="button"]:active,
   transition: transform 0.5s var(--ease-elastic-out);
   transform: translate3d(0, 0, 0);
 }
+
 .winner-mark:hover {
   transform: translate3d(0, -4px, 0) scale3d(1.05, 1.05, 1);
 }
@@ -384,6 +403,7 @@ a[role="button"]:active,
   transform: translate3d(0, 0, 0);
   transform-style: preserve-3d;
 }
+
 .system-graphic:hover {
   transform: translate3d(0, 0, 5px) rotateX(-2deg) rotateY(1deg);
 }
@@ -394,6 +414,7 @@ a[role="button"]:active,
   transform: translate3d(0, 0, 0);
   display: inline-block;
 }
+
 .mega-number:hover {
   transform: translate3d(0, -5px, 10px) scale3d(1.03, 1.03, 1);
 }
@@ -407,9 +428,10 @@ a[role="button"]:active,
 /* Dossier strip items: elastic pop */
 .dossier-strip div {
   transition: transform var(--hover-duration) var(--ease-elastic-out),
-              background-color 0.3s ease;
+    background-color 0.3s ease;
   transform: translate3d(0, 0, 0);
 }
+
 .dossier-strip div:hover {
   transform: translate3d(0, -3px, 5px) scale3d(1.04, 1.04, 1);
   background-color: color-mix(in oklab, var(--foreground) 5%, transparent);
@@ -443,6 +465,7 @@ a[role="button"]:active,
   a {
     cursor: pointer;
   }
+
   ::selection {
     background: var(--foreground);
     color: var(--background);
@@ -460,16 +483,31 @@ a[role="button"]:active,
   position: relative;
   overflow: hidden;
 }
-.hero-grid {
+
+.hero-video-bg {
   position: absolute;
-  inset: 3.5rem 0 0;
-  opacity: 0.13;
-  background-image:
-    linear-gradient(var(--foreground) 1px, transparent 1px),
-    linear-gradient(90deg, var(--foreground) 1px, transparent 1px);
-  background-size: 7.5vw 7.5vw;
-  mask-image: linear-gradient(to bottom, transparent, black 25%, transparent 95%);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  z-index: 0;
 }
+
+.hero-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.18);
+  -webkit-mask-image: none;
+  mask-image: none;
+  background-image:
+    radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.01) 0%, rgba(0, 0, 0, 0.10) 100%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.01) 40%, rgba(0, 0, 0, 0.1) 100%);
+  pointer-events: none;
+}
+
 .hero-name {
   font-family: var(--font-display);
   font-weight: 700;
@@ -477,6 +515,7 @@ a[role="button"]:active,
   line-height: 0.82;
   letter-spacing: 0.04em;
 }
+
 .status-dot::before {
   content: "";
   display: inline-block;
@@ -487,56 +526,56 @@ a[role="button"]:active,
   background: var(--foreground);
   animation: pulse 1.8s infinite;
 }
+
+.hero-section {
+  color: oklch(0.97 0 0);
+}
+
 .dossier-strip {
   position: relative;
-  z-index: 1;
+  z-index: 10;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
 }
+
 .dossier-strip div {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   padding: 1rem;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid rgba(255, 255, 255, 0.18);
 }
+
 .dossier-strip span,
 .section-kicker {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   text-transform: uppercase;
 }
+
 .dossier-strip strong {
   font-family: var(--font-mono);
   font-size: 0.78rem;
 }
+
 .proof-rail {
-  position: fixed;
-  z-index: 30;
-  right: 0;
-  top: 3.5rem;
-  bottom: 0;
-  width: 2.25rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 1rem 0;
-  border-left: 1px solid var(--border);
-  background: var(--background);
+  display: none;
 }
+
 .vertical-label {
   writing-mode: vertical-rl;
   font-family: var(--font-mono);
   font-size: 0.6rem;
 }
+
 .rail-track {
   flex: 1;
   width: 2px;
   background: var(--muted);
   position: relative;
 }
+
 .rail-track i {
   position: absolute;
   bottom: 0;
@@ -545,12 +584,14 @@ a[role="button"]:active,
   background: var(--foreground);
   transition: height 0.6s ease;
 }
+
 .nav-link {
   font-family: var(--font-mono);
   font-size: 0.64rem;
   text-transform: uppercase;
   position: relative;
 }
+
 .nav-link::after {
   content: "";
   position: absolute;
@@ -561,14 +602,17 @@ a[role="button"]:active,
   background: currentColor;
   transition: right 0.25s;
 }
+
 .nav-link:hover::after {
   right: 0;
 }
+
 .section-kicker {
   display: flex;
   gap: 1.5rem;
   margin-bottom: 1.5rem;
 }
+
 .section-title {
   font-family: var(--font-display);
   font-weight: 700;
@@ -576,6 +620,7 @@ a[role="button"]:active,
   line-height: 0.88;
   letter-spacing: 0.03em;
 }
+
 .mission-row {
   width: 100%;
   min-height: 6rem;
@@ -586,6 +631,7 @@ a[role="button"]:active,
   border-bottom: 1px solid var(--border);
   text-align: left;
 }
+
 .mission-row strong {
   font-family: var(--font-display);
   font-weight: 700;
@@ -593,14 +639,17 @@ a[role="button"]:active,
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
+
 .project-layout {
   display: grid;
   grid-template-columns: minmax(250px, 0.65fr) minmax(0, 1.6fr);
   gap: clamp(2rem, 5vw, 6rem);
 }
+
 .project-list {
   border-top: 1px solid var(--border);
 }
+
 .project-tab {
   width: 100%;
   display: grid;
@@ -614,16 +663,19 @@ a[role="button"]:active,
     opacity 0.2s,
     padding 0.2s;
 }
+
 .project-tab[aria-selected="true"] {
   opacity: 1;
   padding-left: 0.75rem;
 }
+
 .project-tab span,
 .project-tab small {
   font-family: var(--font-mono);
   font-size: 0.62rem;
   text-transform: uppercase;
 }
+
 .project-tab strong {
   font-family: var(--font-display);
   font-weight: 700;
@@ -631,12 +683,15 @@ a[role="button"]:active,
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
+
 .project-tab small {
   grid-column: 2;
 }
+
 .project-stage {
   animation: reveal 0.45s ease both;
 }
+
 .project-stage h3 {
   margin-top: 1rem;
   font-family: var(--font-display);
@@ -647,12 +702,14 @@ a[role="button"]:active,
   text-transform: uppercase;
   overflow-wrap: anywhere;
 }
+
 .project-summary {
   max-width: 48rem;
   margin-top: 1.5rem;
   font-size: clamp(1.2rem, 2vw, 1.65rem);
   line-height: 1.35;
 }
+
 .stamp {
   border: 1px solid currentColor;
   padding: 0.35rem 0.5rem;
@@ -660,6 +717,7 @@ a[role="button"]:active,
   font-size: 0.55rem;
   transform: rotate(2deg);
 }
+
 .system-graphic {
   height: 13rem;
   margin-top: 2rem;
@@ -672,82 +730,101 @@ a[role="button"]:active,
   position: relative;
   overflow: hidden;
 }
+
 .system-graphic.grid span {
   display: grid;
   place-items: center;
   border: 1px solid var(--border);
 }
+
 .system-graphic.grid i {
   height: 1px;
   margin-top: 3.25rem;
   background: var(--foreground);
 }
+
 .system-graphic .active {
   background: var(--foreground);
   color: var(--background);
 }
+
 .diagnostic b {
   font-family: var(--font-display);
   font-size: 6rem;
   line-height: 1;
 }
+
 .diagnostic span {
   display: block;
 }
+
 .scan {
   position: absolute;
   inset: 0;
   border-top: 1px solid var(--foreground);
   animation: scan 3s linear infinite;
 }
+
 .search-lines {
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
 }
+
 .search-lines i {
   height: 1px;
   background: var(--foreground);
   width: 80%;
 }
+
 .search-lines i:nth-of-type(2) {
   width: 55%;
 }
+
 .search-lines i:nth-of-type(3) {
   width: 68%;
 }
+
 .search-lines b {
   margin-top: auto;
 }
+
 .robot-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
+
 .robot-grid i {
   border: 1px solid var(--border);
 }
+
 .robot-grid b {
   position: absolute;
   inset: auto 1rem 1rem auto;
 }
+
 .waveform {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 2.5%;
 }
+
 .waveform i {
   width: 3%;
   background: var(--foreground);
   animation: wave 1.4s ease-in-out infinite alternate;
 }
+
 .waveform i:nth-child(2n) {
   animation-delay: -0.5s;
 }
+
 .field-grid {
   background-size: 22px 22px;
 }
+
 .field-grid b {
   position: absolute;
   left: 50%;
@@ -756,6 +833,7 @@ a[role="button"]:active,
   border: 1px solid currentColor;
   padding: 1rem;
 }
+
 .field-grid i {
   position: absolute;
   left: 50%;
@@ -767,25 +845,30 @@ a[role="button"]:active,
   transform: translate(-50%, -50%);
   animation: pulse-ring 2s infinite;
 }
+
 .project-facts {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
   margin-top: 2rem;
 }
+
 .project-facts div {
   border-top: 1px solid var(--border);
   padding-top: 0.8rem;
 }
+
 .project-facts dt {
   font-family: var(--font-mono);
   font-size: 0.6rem;
   text-transform: uppercase;
 }
+
 .project-facts dd {
   margin-top: 0.7rem;
   line-height: 1.5;
 }
+
 .tech-chip {
   border: 1px solid var(--border);
   padding: 0.4rem 0.55rem;
@@ -793,6 +876,7 @@ a[role="button"]:active,
   font-size: 0.62rem;
   text-transform: uppercase;
 }
+
 .text-link {
   display: inline-flex;
   align-items: center;
@@ -800,28 +884,35 @@ a[role="button"]:active,
   border-bottom: 1px solid currentColor;
   padding-bottom: 0.25rem;
 }
+
 .text-link svg {
   width: 0.85rem;
 }
+
 .inverse-section {
   background: var(--foreground);
   color: var(--background);
 }
+
 .dark .inverse-section {
   background: color-mix(in oklab, var(--card) 85%, black);
   color: var(--foreground);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
+
 .inverse-section .section-kicker {
   color: inherit;
 }
+
 .inverse-section .achievement-row {
   border-color: color-mix(in oklab, var(--background) 35%, transparent);
 }
+
 .dark .inverse-section .achievement-row {
   border-color: var(--border);
 }
+
 .achievement-row {
   width: 100%;
   display: grid;
@@ -833,19 +924,23 @@ a[role="button"]:active,
   text-align: left;
   opacity: 0.5;
 }
+
 .achievement-row.is-active {
   opacity: 1;
 }
+
 .achievement-row span,
 .achievement-row small {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   text-transform: uppercase;
 }
+
 .achievement-row strong {
   font-family: var(--font-display);
   text-transform: uppercase;
 }
+
 .achievement-detail {
   border: 1px solid currentColor;
   padding: clamp(1.5rem, 4vw, 3rem);
@@ -853,6 +948,7 @@ a[role="button"]:active,
   display: flex;
   flex-direction: column;
 }
+
 .mega-number {
   font-family: var(--font-display);
   font-weight: 700;
@@ -860,6 +956,7 @@ a[role="button"]:active,
   line-height: 0.72;
   letter-spacing: 0.03em;
 }
+
 .achievement-detail h3 {
   margin-top: 2rem;
   font-family: var(--font-display);
@@ -868,12 +965,14 @@ a[role="button"]:active,
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
+
 .achievement-detail p:not(.font-mono) {
   margin-top: 1rem;
   max-width: 32rem;
   font-size: 1.1rem;
   line-height: 1.5;
 }
+
 .winner-mark {
   margin-top: auto;
   display: flex;
@@ -885,15 +984,18 @@ a[role="button"]:active,
   letter-spacing: 0.04em;
   line-height: 0.8;
 }
+
 .winner-mark span {
   font-family: var(--font-mono);
   font-size: 0.6rem;
   line-height: 1.2;
 }
+
 .skill-matrix {
   margin-top: 4rem;
   border-top: 1px solid var(--border);
 }
+
 .skill-group {
   display: grid;
   grid-template-columns: 3rem minmax(10rem, 0.5fr) 1fr;
@@ -901,6 +1003,7 @@ a[role="button"]:active,
   padding: 1.5rem 0;
   border-bottom: 1px solid var(--border);
 }
+
 .skill-group h3 {
   font-family: var(--font-display);
   font-weight: 700;
@@ -908,27 +1011,32 @@ a[role="button"]:active,
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
+
 .skill-group div {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1.2rem;
 }
+
 .skill-group div span {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   text-transform: uppercase;
 }
+
 .evidence-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: clamp(3rem, 8vw, 9rem);
 }
+
 .evidence-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
   border-top: 1px solid var(--border);
   border-left: 1px solid var(--border);
 }
+
 .evidence-stats div {
   min-height: 9rem;
   padding: 1rem;
@@ -938,17 +1046,20 @@ a[role="button"]:active,
   flex-direction: column;
   justify-content: space-between;
 }
+
 .evidence-stats strong {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(2.4rem, 6vw, 4.8rem);
   letter-spacing: 0.03em;
 }
+
 .evidence-stats span {
   font-family: var(--font-mono);
   font-size: 0.62rem;
   text-transform: uppercase;
 }
+
 .contact-title {
   margin-top: 1rem;
   font-family: var(--font-display);
@@ -957,6 +1068,7 @@ a[role="button"]:active,
   line-height: 0.82;
   letter-spacing: 0.04em;
 }
+
 .recruiter-mode .hero-grid,
 .recruiter-mode .system-graphic,
 .recruiter-mode #mission-control,
@@ -964,40 +1076,49 @@ a[role="button"]:active,
 .recruiter-mode .proof-rail {
   display: none;
 }
+
 .recruiter-mode .hero-section {
   min-height: auto;
   padding-top: 4rem;
 }
+
 .recruiter-mode .project-layout {
   display: block;
 }
+
 .recruiter-mode .project-list {
   display: none;
 }
+
 @keyframes pulse {
   50% {
     opacity: 0.2;
   }
 }
+
 @keyframes reveal {
   from {
     opacity: 0;
     transform: translateY(12px);
   }
 }
+
 @keyframes scan {
   from {
     transform: translateY(-100%);
   }
+
   to {
     transform: translateY(100%);
   }
 }
+
 @keyframes wave {
   to {
     transform: scaleY(0.45);
   }
 }
+
 @keyframes pulse-ring {
   50% {
     width: 14rem;
@@ -1005,6 +1126,7 @@ a[role="button"]:active,
     opacity: 0;
   }
 }
+
 /* ═══════════════════════════════════════════════════════════════════
    CUSTOM MAGNETIC CURSOR — desktop only, fine pointer
    ═══════════════════════════════════════════════════════════════════ */
@@ -1033,8 +1155,8 @@ a[role="button"]:active,
   border-radius: 50%;
   mix-blend-mode: difference;
   transition: width 0.3s var(--ease-elastic-out),
-              height 0.3s var(--ease-elastic-out),
-              background 0.3s ease;
+    height 0.3s var(--ease-elastic-out),
+    background 0.3s ease;
 }
 
 .custom-cursor-ring.is-hover {
@@ -1165,58 +1287,89 @@ a[role="button"]:active,
 }
 
 @keyframes protocolPulse {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--foreground) 40%, transparent); }
-  50% { box-shadow: 0 0 0 4px color-mix(in oklab, var(--foreground) 0%, transparent); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--foreground) 40%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--foreground) 0%, transparent);
+  }
 }
 
 @keyframes scan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(800%); }
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(800%);
+  }
 }
 
 @keyframes soundBar {
-  0%, 100% { height: 2px; }
-  50% { height: 12px; }
+
+  0%,
+  100% {
+    height: 2px;
+  }
+
+  50% {
+    height: 12px;
+  }
 }
 
 @media (max-width: 767px) {
   .proof-rail {
     display: none;
   }
+
   .dossier-strip {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .dossier-strip div:last-child {
     grid-column: span 2;
   }
+
   .project-layout,
   .evidence-grid {
     grid-template-columns: 1fr;
   }
+
   .project-list {
     display: flex;
     overflow-x: auto;
   }
+
   .project-tab {
     min-width: 12rem;
   }
+
   .project-facts {
     grid-template-columns: 1fr;
   }
+
   .skill-group {
     grid-template-columns: 2rem 1fr;
   }
+
   .skill-group div {
     grid-column: 2;
   }
+
   .mission-row {
     grid-template-columns: 2rem 1fr 1rem;
   }
+
   .hero-name {
     font-size: clamp(3.5rem, 21vw, 7rem);
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -1226,7 +1379,9 @@ a[role="button"]:active,
     transition-duration: 0.01ms !important;
   }
 }
+
 @media print {
+
   header,
   .proof-rail,
   .hero-grid,
@@ -1236,9 +1391,11 @@ a[role="button"]:active,
   button {
     display: none !important;
   }
+
   section {
     break-inside: avoid;
   }
+
   .inverse-section {
     background: transparent;
     color: var(--foreground);

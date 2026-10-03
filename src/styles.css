@@ -459,11 +459,13 @@ a[role="button"]:active,
     font-family: var(--font-sans);
     letter-spacing: 0;
     overflow-x: hidden;
+    /* PNG is served at its pixel size (32×32) — gives default cursor scale */
+    cursor: url('/nyan-cursor-32.png') 0 0, url('/nyan-cursor.ani'), auto;
   }
 
   button,
   a {
-    cursor: pointer;
+    cursor: url('/nyan-pointer-32.png') 0 0, url('/nyan-pointer.cur'), pointer;
   }
 
   ::selection {
@@ -529,6 +531,11 @@ a[role="button"]:active,
 
 .hero-section {
   color: oklch(0.97 0 0);
+}
+
+/* Header overlaid on the hero video uses theme colors (black in light, white in dark) */
+.hero-section header {
+  color: var(--foreground);
 }
 
 .dossier-strip {
@@ -973,6 +980,64 @@ a[role="button"]:active,
   line-height: 1.5;
 }
 
+.achievement-podium-img {
+  position: relative;
+  margin-top: 1.5rem;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, currentColor 20%, transparent);
+}
+
+/* Portrait override — full image visible, no cropping */
+.achievement-podium-img.is-portrait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in oklab, currentColor 4%, transparent);
+}
+
+.achievement-podium-img.is-portrait .achievement-podium-photo {
+  object-fit: contain;
+  object-position: center center;
+  max-height: 24rem;
+  height: auto;
+}
+
+.achievement-podium-photo {
+  width: 100%;
+  height: 100%;
+  min-height: 10rem;
+  max-height: 22rem;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  transition: opacity 0.3s ease;
+}
+
+/* Vignette overlay — bottom-biased gradient for text legibility */
+.achievement-podium-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 120% 60% at 50% 110%,
+      color-mix(in oklab, currentColor 28%, transparent) 0%,
+      transparent 70%
+    ),
+    linear-gradient(
+      to top,
+      color-mix(in oklab, currentColor 22%, transparent) 0%,
+      transparent 40%
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, currentColor 10%, transparent) 0%,
+      transparent 30%
+    );
+}
+
 .winner-mark {
   margin-top: auto;
   display: flex;
@@ -1069,26 +1134,6 @@ a[role="button"]:active,
   letter-spacing: 0.04em;
 }
 
-.recruiter-mode .hero-grid,
-.recruiter-mode .system-graphic,
-.recruiter-mode #mission-control,
-.recruiter-mode #achievements,
-.recruiter-mode .proof-rail {
-  display: none;
-}
-
-.recruiter-mode .hero-section {
-  min-height: auto;
-  padding-top: 4rem;
-}
-
-.recruiter-mode .project-layout {
-  display: block;
-}
-
-.recruiter-mode .project-list {
-  display: none;
-}
 
 @keyframes pulse {
   50% {
@@ -1127,62 +1172,6 @@ a[role="button"]:active,
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   CUSTOM MAGNETIC CURSOR — desktop only, fine pointer
-   ═══════════════════════════════════════════════════════════════════ */
-.custom-cursor-dot,
-.custom-cursor-ring {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 9999;
-  pointer-events: none;
-  will-change: transform;
-}
-
-.custom-cursor-dot {
-  width: 6px;
-  height: 6px;
-  background: var(--foreground);
-  border-radius: 50%;
-  mix-blend-mode: difference;
-}
-
-.custom-cursor-ring {
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--foreground);
-  border-radius: 50%;
-  mix-blend-mode: difference;
-  transition: width 0.3s var(--ease-elastic-out),
-    height 0.3s var(--ease-elastic-out),
-    background 0.3s ease;
-}
-
-.custom-cursor-ring.is-hover {
-  width: 56px;
-  height: 56px;
-  background: color-mix(in oklab, var(--foreground) 8%, transparent);
-}
-
-.custom-cursor-ring.is-clicking {
-  width: 22px;
-  height: 22px;
-  background: color-mix(in oklab, var(--foreground) 20%, transparent);
-}
-
-.custom-cursor-label {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--foreground);
-  white-space: nowrap;
-}
 
 /* ═══════════════════════════════════════════════════════════════════
    PROTOCOL RAIL — enhanced proof meter with stage nodes

@@ -47,7 +47,7 @@ function useLeetCodeSolved() {
         writeCache(value);
       })
       .catch(() => {
-        // Never replace a recruiter-facing number with an error state.
+        // Never replace the displayed number with an error state.
       });
 
     return () => {

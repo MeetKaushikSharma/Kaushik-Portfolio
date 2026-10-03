@@ -9,15 +9,16 @@ import {
   Linkedin,
   Mail,
   Menu,
-  Printer,
   Sparkles,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LeetCodeSolvedCount } from "@/components/LeetCodeStats";
+import { GitHubRepoCount, useGitHubStats } from "@/components/GitHubStats";
+import { GFGSolvedCount } from "@/components/GFGStats";
 import { AtmosphereCanvas } from "@/components/canvas/AtmosphereCanvas";
 import { SceneProject } from "@/components/canvas/SceneProject";
-import { CustomCursor } from "@/components/ui/CustomCursor";
+
 import { SoundToggle } from "@/components/ui/SoundToggle";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { CloudThemeTransition } from "@/components/theme/CloudThemeTransition";
@@ -95,13 +96,14 @@ function Index() {
   const [protocol, setProtocol] = useState<ProtocolState>(defaultState);
   const [activeProject, setActiveProject] = useState(projects[0]?.id ?? "");
   const [activeAchievement, setActiveAchievement] = useState(0);
-  const [recruiterMode, setRecruiterMode] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [collecting, setCollecting] = useState(false);
   const [collectTarget, setCollectTarget] = useState<{ x: number; y: number; label: string } | null>(null);
   const [recentUnlock, setRecentUnlock] = useState<ProtocolStage | MissionAlert | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const isHydratedRef = useRef(false);
+
+  const ghStats = useGitHubStats();
 
   const { enabled: soundEnabled, setEnabled, sounds } = useSoundDesign();
   const { theme, isTransitioning, targetTheme, startToggle, commitSwap, finishTransition } = useTheme({
@@ -227,11 +229,6 @@ function Index() {
     window.open(resumeUrl, "_blank", "noopener,noreferrer");
   }
 
-  function handleRecruiterToggle() {
-    sounds.modeSwitch();
-    setRecruiterMode((value) => !value);
-  }
-
   function handleTechChipClick(tech: string) {
     sounds.telemetryClick();
     setCollecting(true);
@@ -279,7 +276,7 @@ function Index() {
   }
 
   return (
-    <main className={recruiterMode ? "recruiter-mode" : ""}>
+    <main>
       <CloudThemeTransition
         theme={theme}
         isTransitioning={isTransitioning}
@@ -288,54 +285,6 @@ function Index() {
         onFinish={finishTransition}
       />
       <AtmosphereCanvas intensity={1.0} />
-      <CustomCursor />
-
-      <header className="fixed top-3 left-4 right-4 z-[99999] flex h-13 items-center justify-between rounded-2xl border border-border/60 bg-background/85 px-4 shadow-lg shadow-black/5 backdrop-blur-md dark:shadow-black/25 md:left-8 md:right-8 md:px-6">
-        <button
-          className="font-mono text-xs font-bold uppercase tracking-widest cursor-pointer"
-          onClick={() => {
-            sounds.warpJump();
-            jumpTo("top");
-          }}
-          aria-label="Return to top"
-          data-cursor-text="TOP"
-        >
-          KS / 026
-        </button>
-        <nav className="hidden items-center gap-7 md:flex" aria-label="Primary navigation">
-          {sections.map(([id, label]) => (
-            <button
-              key={id}
-              onClick={() => {
-                jumpTo(id);
-                setMenuOpen(false);
-                sounds.warpJump();
-              }}
-              className="nav-link"
-              data-cursor-text="GOTO"
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
-        <div className="flex items-center gap-2">
-          <ThemeToggle
-            theme={theme}
-            onToggle={startToggle}
-            isTransitioning={isTransitioning}
-          />
-          <SoundToggle enabled={soundEnabled} onToggle={toggleSound} />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMenuOpen((open) => !open)}
-            className="h-8 w-8 md:hidden"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-          >
-            {menuOpen ? <X /> : <Menu />}
-          </Button>
-        </div>
-      </header>
 
       {menuOpen && (
         <div className="fixed inset-0 z-[99998] flex flex-col justify-center bg-background/95 px-8 pt-20 backdrop-blur-md md:hidden">
@@ -392,6 +341,55 @@ function Index() {
       />
 
       <section id="top" className="hero-section section-shell" data-scroll-section>
+        {/* Header overlaid on top of the hero video */}
+        <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-5 md:px-8">
+          <header className="flex h-13 items-center justify-between rounded-2xl border border-border/60 bg-background/85 px-4 shadow-lg shadow-black/5 backdrop-blur-md dark:shadow-black/25 md:px-6">
+            <button
+              className="font-mono text-xs font-bold uppercase tracking-widest cursor-pointer"
+              onClick={() => {
+                sounds.warpJump();
+                jumpTo("top");
+              }}
+              aria-label="Return to top"
+              data-cursor-text="TOP"
+            >
+              KS / 026
+            </button>
+            <nav className="hidden items-center gap-7 md:flex" aria-label="Primary navigation">
+              {sections.map(([id, label]) => (
+                <button
+                  key={id}
+                  onClick={() => {
+                    jumpTo(id);
+                    setMenuOpen(false);
+                    sounds.warpJump();
+                  }}
+                  className="nav-link"
+                  data-cursor-text="GOTO"
+                >
+                  {label}
+                </button>
+              ))}
+            </nav>
+            <div className="flex items-center gap-2">
+              <ThemeToggle
+                theme={theme}
+                onToggle={startToggle}
+                isTransitioning={isTransitioning}
+              />
+              <SoundToggle enabled={soundEnabled} onToggle={toggleSound} />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMenuOpen((open) => !open)}
+                className="h-8 w-8 md:hidden"
+                aria-label={menuOpen ? "Close menu" : "Open menu"}
+              >
+                {menuOpen ? <X /> : <Menu />}
+              </Button>
+            </div>
+          </header>
+        </div>
         {/* Video background */}
         <video
           className="hero-video-bg"
@@ -404,10 +402,6 @@ function Index() {
         />
         {/* Vignette + readability scrim */}
         <div className="hero-vignette" aria-hidden="true" />
-        <div className="relative z-10 flex items-start justify-between gap-4 pt-22 font-mono text-[10px] uppercase md:pt-24 md:text-xs">
-          <span>Portfolio / 2026</span>
-          <span className="status-dot">Available for opportunities</span>
-        </div>
         <div className="relative z-10 mt-auto pb-10 pt-24 md:pb-14">
           <p className="mb-5 font-mono text-xs uppercase">
             Full-stack engineer · AI systems builder · 6× hackathon winner
@@ -454,7 +448,7 @@ function Index() {
           ["BASE", "NOIDA, INDIA"],
           ["EDUCATION", "B.TECH / 2028"],
           ["CGPA", "9.44 / 10"],
-          ["REPOSITORIES", "14 PUBLIC"],
+          ["REPOSITORIES", <GitHubRepoCount suffix=" PUBLIC" />],
           ["LEETCODE", <LeetCodeSolvedCount suffix=" SOLVED" />],
           ] satisfies StatRow[]).map(([label, value]) => (
           <div key={label} data-cursor-text="FACT">
@@ -628,6 +622,21 @@ function Index() {
             </p>
             <h3>{achievements[activeAchievement]?.project}</h3>
             <p>{achievements[activeAchievement]?.detail}</p>
+            {achievements[activeAchievement]?.image && (
+              <div
+                className={`achievement-podium-img${
+                  achievements[activeAchievement].event === "IOTHON" ? " is-portrait" : ""
+                }`}
+              >
+                <img
+                  key={achievements[activeAchievement].image}
+                  src={achievements[activeAchievement].image}
+                  alt={`${achievements[activeAchievement].event} podium`}
+                  className="achievement-podium-photo"
+                />
+                <div className="achievement-podium-vignette" aria-hidden="true" />
+              </div>
+            )}
             <div className="winner-mark">
               6×
               <span>
@@ -641,22 +650,12 @@ function Index() {
       </section>
 
       <section id="skills" className="section-shell py-24 md:py-32" data-scroll-section>
-        <div className="flex flex-wrap items-start justify-between gap-8">
-          <div>
-            <div className="section-kicker">
-              <span>03</span>
-              <span>Technical range</span>
-            </div>
-            <h2 className="section-title">THE LOADOUT.</h2>
+        <div>
+          <div className="section-kicker">
+            <span>03</span>
+            <span>Technical range</span>
           </div>
-          <Button
-            variant="outline"
-            onClick={handleRecruiterToggle}
-            className="rounded-none font-mono text-xs uppercase cursor-pointer"
-            data-cursor-text="MODE"
-          >
-            <Printer /> {recruiterMode ? "Exit recruiter mode" : "Recruiter mode"}
-          </Button>
+          <h2 className="section-title">THE LOADOUT.</h2>
         </div>
         <div className="skill-matrix">
           {skillGroups.map((group, index) => (
@@ -711,12 +710,12 @@ function Index() {
           </div>
           <div className="evidence-stats">
             {([
-              ["14", "Public repositories"],
-              ["84", "Contributions"],
-              ["12", "Followers"],
+              [ghStats.publicRepos, "Public repositories"],
+              [ghStats.totalCommits + "+", "Total commits"],
+              [ghStats.followers, "GitHub followers"],
               [<LeetCodeSolvedCount />, "LeetCode problems"],
-              ["80+", "GFG problems"],
-              ["9.44", "CGPA"],
+              [<GFGSolvedCount />, "GFG problems"],
+              [ghStats.topLanguages + " langs", "In production"],
             ] satisfies [value: ReactNode, label: string][]).map(([value, label]) => (
               <div
                 key={label}

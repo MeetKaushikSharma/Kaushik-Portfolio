@@ -1,3 +1,10 @@
+import ecoCodeImg from "@/assets/HACKATHONS PODIUM/Eco_Code.jpg";
+import codeVedaImg from "@/assets/HACKATHONS PODIUM/Code_Veda_2.0.jpg";
+import srmBuildsImg from "@/assets/HACKATHONS PODIUM/SRM_Builds.png";
+import iothonImg from "@/assets/HACKATHONS PODIUM/IOTTHON.jpg";
+import ecoVisionImg from "@/assets/HACKATHONS PODIUM/Eco_Vision.jpg";
+import quantCraftImg from "@/assets/HACKATHONS PODIUM/QuantCraft.jpg";
+
 export type Project = {
   id: string;
   name: string;
@@ -10,6 +17,16 @@ export type Project = {
   repo?: string;
   live?: string;
   interaction: "judge" | "diagnostic" | "search" | "robot" | "audio" | "field";
+};
+
+export type Achievement = {
+  rank: string;
+  event: string;
+  result: string;
+  date: string;
+  project: string;
+  detail: string;
+  image: string;
 };
 
 export const projects: Project[] = [
@@ -87,13 +104,13 @@ export const projects: Project[] = [
   },
 ];
 
-export const achievements = [
-  { rank: "01", event: "Eco-Code Hackathon", result: "1st place", date: "Sep 2026", project: "EcoSort", detail: "AI camera classification across 18 waste categories, a robotic sorting arm, and rover dashboard." },
-  { rank: "02", event: "Code Veda 2.0", result: "1st place", date: "Apr 2026", project: "Dhara-Vaidya", detail: "Crop intelligence, farm mapping, drone surveys, heatmaps, and dual ResNet-18 models." },
-  { rank: "03", event: "SRM Builds 7.0", result: "Runner-up", date: "Mar 2026", project: "Dhara-Vaidya", detail: "A working agricultural diagnosis and IoT rover platform refined under competition pressure." },
-  { rank: "04", event: "IOTHON", result: "Runner-up", date: "Mar 2026", project: "Dhara-Vaidya", detail: "Expanded telemetry and autonomous field-monitoring capabilities." },
-  { rank: "05", event: "Eco-Vision", result: "Finalist build", date: "Apr 2026", project: "Dhara-Vaidya", detail: "Continued iteration of the crop-disease and farm robotics ecosystem." },
-  { rank: "06", event: "Quant Craft", result: "2nd place", date: "May 2026", project: "ROC", detail: "A robotics development desktop with visual programming and simulation." },
+export const achievements: Achievement[] = [
+  { rank: "01", event: "Eco-Code Hackathon", result: "1st place", date: "Sep 2026", project: "EcoSort", detail: "AI camera classification across 18 waste categories, a robotic sorting arm, and rover dashboard.", image: ecoCodeImg },
+  { rank: "02", event: "Code Veda 2.0", result: "1st place", date: "Apr 2026", project: "Dhara-Vaidya", detail: "Crop intelligence, farm mapping, drone surveys, heatmaps, and dual ResNet-18 models.", image: codeVedaImg },
+  { rank: "03", event: "SRM Builds 7.0", result: "Runner-up", date: "Mar 2026", project: "Dhara-Vaidya", detail: "A working agricultural diagnosis and IoT rover platform refined under competition pressure.", image: srmBuildsImg },
+  { rank: "04", event: "IOTHON", result: "Runner-up", date: "Mar 2026", project: "Dhara-Vaidya", detail: "Expanded telemetry and autonomous field-monitoring capabilities.", image: iothonImg },
+  { rank: "05", event: "Eco-Vision", result: "Finalist build", date: "Apr 2026", project: "Dhara-Vaidya", detail: "Continued iteration of the crop-disease and farm robotics ecosystem.", image: ecoVisionImg },
+  { rank: "06", event: "Quant Craft", result: "2nd place", date: "May 2026", project: "ROC", detail: "A robotics development desktop with visual programming and simulation.", image: quantCraftImg },
 ];
 
 export const skillGroups = [

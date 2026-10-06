@@ -24,18 +24,16 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { CloudThemeTransition } from "@/components/theme/CloudThemeTransition";
 import { EvidenceCollector } from "@/components/gamification/EvidenceCollector";
 import { ProtocolMeter } from "@/components/gamification/ProtocolMeter";
-import { MissionUnlock, type MissionAlert } from "@/components/gamification/MissionUnlock";
+
 import {
   PROTOCOL_STAGES,
   collectEvidence,
   defaultState,
   loadProtocol,
   saveProtocol,
-  stageById,
   toggleStage,
   viewResume,
   getClearanceRank,
-  type ProtocolStage,
   type ProtocolState,
   type StageId,
 } from "@/lib/protocolEngine";
@@ -99,13 +97,11 @@ function Index() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [collecting, setCollecting] = useState(false);
   const [collectTarget, setCollectTarget] = useState<{ x: number; y: number; label: string } | null>(null);
-  const [recentUnlock, setRecentUnlock] = useState<ProtocolStage | MissionAlert | null>(null);
-  const [showResumePrompt, setShowResumePrompt] = useState(false);
   const isHydratedRef = useRef(false);
 
   const ghStats = useGitHubStats();
 
-  const { enabled: soundEnabled, setEnabled, sounds, toggleSound } = useSoundDesign();
+  const { enabled: soundEnabled, sounds, toggleSound } = useSoundDesign();
   const { theme, isTransitioning, targetTheme, startToggle, commitSwap, finishTransition } = useTheme({
     onThemeChange: (newTheme) => {
       if (newTheme === "dark") {
@@ -127,9 +123,6 @@ function Index() {
   useEffect(() => {
     const saved = loadProtocol();
     setProtocol(saved);
-    if (saved.completed.length > 0 && saved.completed.length < PROTOCOL_STAGES.length) {
-      setShowResumePrompt(true);
-    }
     isHydratedRef.current = true;
   }, []);
 
@@ -157,10 +150,7 @@ function Index() {
             if (stageId) {
               setProtocol((current) => {
                 if (!current.completed.includes(stageId!)) {
-                  const updated = toggleStage(current, stageId!);
-                  const stage = stageById(stageId!);
-                  if (stage) setRecentUnlock(stage);
-                  return updated;
+                  return toggleStage(current, stageId!);
                 }
                 return current;
               });
@@ -219,13 +209,6 @@ function Index() {
     setCollecting(true);
     setCollectTarget({ x: 0.5, y: 0.45, label: "DOSSIER DECRYPTED" });
     setProtocol((current) => viewResume(current));
-    setRecentUnlock({
-      number: "SEC",
-      title: "PERSONNEL DOSSIER ACCESSED",
-      description: "Classified engineering credentials accessed. Clearance level increased.",
-      badge: "+2 EVIDENCE",
-      isSpecial: true,
-    });
     window.open(resumeUrl, "_blank", "noopener,noreferrer");
   }
 
@@ -276,19 +259,8 @@ function Index() {
   }
 
   function handleSoundToggle() {
-    const next = !soundEnabled;
-    setEnabled(next);
-    setProtocol((current) => ({ ...current, soundEnabled: next }));
+    // toggleSound() is the single source of truth — it flips enabledRef + state atomically
     toggleSound();
-  }
-
-  function resumeNextStage() {
-    const nextStage = PROTOCOL_STAGES.find((s) => !protocol.completed.includes(s.id));
-    if (nextStage) {
-      sounds.navForward();
-      jumpTo(stageToSection[nextStage.id]);
-    }
-    setShowResumePrompt(false);
   }
 
   return (
@@ -320,40 +292,6 @@ function Index() {
       <ProtocolMeter
         state={protocol}
         onStageClick={handleStageClick}
-      />
-
-      {/* Returning session resume badge */}
-      {showResumePrompt && (
-        <div
-          className="fixed bottom-6 right-6 z-40 hidden md:flex items-center gap-2.5 border border-foreground/30 bg-background/90 px-3.5 py-2 font-mono text-[10px] uppercase shadow-xl backdrop-blur animate-in fade-in slide-in-from-bottom-2"
-          role="status"
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
-          <span>RESUME PROTOCOL ({protocol.completed.length}/{PROTOCOL_STAGES.length})</span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resumeNextStage}
-            className="h-6 rounded-none px-2 font-mono text-[9px] uppercase border-foreground/40 hover:bg-foreground hover:text-background"
-          >
-            CONTINUE →
-          </Button>
-          <button
-            onClick={() => setShowResumePrompt(false)}
-            className="ml-1 text-muted-foreground hover:text-foreground p-0.5"
-            aria-label="Dismiss resume prompt"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
-      {/* Mission Unlock Notification Modal */}
-      <MissionUnlock
-        unlockedStage={recentUnlock}
-        totalCompleted={protocol.completed.length}
-        totalStages={PROTOCOL_STAGES.length}
-        onDismiss={() => setRecentUnlock(null)}
       />
 
       {/* Floating persistent header visible across all sections */}

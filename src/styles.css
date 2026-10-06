@@ -192,10 +192,10 @@ html.lenis body {
    excessive memory consumption on low-end devices.
    ═══════════════════════════════════════════════════════════════════ */
 
-/* 3D perspective context for the entire page */
+/* Page container */
 main {
-  perspective: 1200px;
-  perspective-origin: 50% 40%;
+  position: relative;
+  width: 100%;
 }
 
 /* Scroll-animated sections get composite layer promotion */
@@ -533,8 +533,8 @@ a[role="button"]:active,
   color: oklch(0.97 0 0);
 }
 
-/* Header overlaid on the hero video uses theme colors (black in light, white in dark) */
-.hero-section header {
+/* Floating header uses theme colors (black in light, white in dark) */
+header {
   color: var(--foreground);
 }
 

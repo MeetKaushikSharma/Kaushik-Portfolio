@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getGFGSolvedCount } from "@/lib/gfg-server";
 import { GFG_SNAPSHOT } from "@/lib/gfg-snapshot";
 
-const CACHE_KEY = "gfg_solved_printkaushik";
+const CACHE_KEY = "gfg_solved_printkaushik_v2";
 const CACHE_TTL_MS = 10 * 60 * 1000;
 
 function readCache(): number | null {
@@ -27,14 +27,12 @@ function writeCache(value: number) {
 }
 
 function useGFGSolved() {
-  const [solved, setSolved] = useState<number>(GFG_SNAPSHOT.problemsSolved);
+  const [solved, setSolved] = useState<number>(() => readCache() ?? GFG_SNAPSHOT.problemsSolved);
 
   useEffect(() => {
-    const cached = readCache();
-    if (cached) setSolved(cached);
-
     let cancelled = false;
 
+    // Stale-while-revalidate: always re-fetch live GFG count in background
     getGFGSolvedCount()
       .then((value) => {
         if (cancelled || !Number.isFinite(value) || value <= 0) return;

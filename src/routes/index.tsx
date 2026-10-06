@@ -105,7 +105,7 @@ function Index() {
 
   const ghStats = useGitHubStats();
 
-  const { enabled: soundEnabled, setEnabled, sounds } = useSoundDesign();
+  const { enabled: soundEnabled, setEnabled, sounds, toggleSound } = useSoundDesign();
   const { theme, isTransitioning, targetTheme, startToggle, commitSwap, finishTransition } = useTheme({
     onThemeChange: (newTheme) => {
       if (newTheme === "dark") {
@@ -189,7 +189,7 @@ function Index() {
     setCollecting(true);
     setCollectTarget({ x: 0.92, y: 0.5, label: project.name.toUpperCase() });
     setProtocol((current) => collectEvidence(current));
-    sounds.telemetryClick();
+    sounds.tabSwitch();
   }
 
   function handleAchievementClick(index: number) {
@@ -197,7 +197,7 @@ function Index() {
     setCollecting(true);
     setCollectTarget({ x: 0.92, y: 0.5, label: "EVIDENCE" });
     setProtocol((current) => collectEvidence(current));
-    sounds.telemetryClick();
+    sounds.tabSwitch();
   }
 
   function handleEnterProtocol() {
@@ -215,7 +215,7 @@ function Index() {
 
   function handleViewResume(e: React.MouseEvent) {
     e.preventDefault();
-    sounds.dossierDecrypted();
+    sounds.dossierReveal();
     setCollecting(true);
     setCollectTarget({ x: 0.5, y: 0.45, label: "DOSSIER DECRYPTED" });
     setProtocol((current) => viewResume(current));
@@ -230,14 +230,32 @@ function Index() {
   }
 
   function handleTechChipClick(tech: string) {
-    sounds.telemetryClick();
+    sounds.click();
     setCollecting(true);
     setCollectTarget({ x: 0.92, y: 0.5, label: tech.toUpperCase() });
     setProtocol((current) => collectEvidence(current, 1));
   }
 
+  function handleLoadoutClick(skill: string) {
+    sounds.loadoutEquip();
+    setCollecting(true);
+    setCollectTarget({ x: 0.92, y: 0.5, label: skill.toUpperCase() });
+    setProtocol((current) => collectEvidence(current, 1));
+  }
+
+  function handleGithubIdentityClick() {
+    sounds.telemetryScan();
+  }
+
+  function handleTelemetryStatClick(label: string) {
+    sounds.telemetryScan();
+    setCollecting(true);
+    setCollectTarget({ x: 0.92, y: 0.5, label: label.toUpperCase() });
+    setProtocol((current) => collectEvidence(current, 1));
+  }
+
   function handleExternalClick() {
-    sounds.telemetryClick();
+    sounds.click();
   }
 
   function handleCollectDone() {
@@ -246,37 +264,35 @@ function Index() {
   }
 
   function handleMissionClick(id: string) {
+    sounds.navForward();
     jumpTo(id);
     setMenuOpen(false);
-    sounds.warpJump();
   }
 
   function handleStageClick(stageId: StageId) {
+    sounds.navForward();
     const sectionId = stageToSection[stageId] ?? "top";
     jumpTo(sectionId);
-    sounds.warpJump();
   }
 
-  function toggleSound() {
+  function handleSoundToggle() {
     const next = !soundEnabled;
     setEnabled(next);
     setProtocol((current) => ({ ...current, soundEnabled: next }));
-    if (next) {
-      sounds.hover();
-    }
+    toggleSound();
   }
 
   function resumeNextStage() {
     const nextStage = PROTOCOL_STAGES.find((s) => !protocol.completed.includes(s.id));
     if (nextStage) {
+      sounds.navForward();
       jumpTo(stageToSection[nextStage.id]);
     }
     setShowResumePrompt(false);
-    sounds.warpJump();
   }
 
   return (
-    <main>
+    <>
       <CloudThemeTransition
         theme={theme}
         isTransitioning={isTransitioning}
@@ -340,56 +356,65 @@ function Index() {
         onDismiss={() => setRecentUnlock(null)}
       />
 
-      <section id="top" className="hero-section section-shell" data-scroll-section>
-        {/* Header overlaid on top of the hero video */}
-        <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-5 md:px-8">
-          <header className="flex h-13 items-center justify-between rounded-2xl border border-border/60 bg-background/85 px-4 shadow-lg shadow-black/5 backdrop-blur-md dark:shadow-black/25 md:px-6">
-            <button
-              className="font-mono text-xs font-bold uppercase tracking-widest cursor-pointer"
-              onClick={() => {
-                sounds.warpJump();
-                jumpTo("top");
-              }}
-              aria-label="Return to top"
-              data-cursor-text="TOP"
-            >
-              KS / 026
-            </button>
-            <nav className="hidden items-center gap-7 md:flex" aria-label="Primary navigation">
-              {sections.map(([id, label]) => (
-                <button
-                  key={id}
-                  onClick={() => {
-                    jumpTo(id);
-                    setMenuOpen(false);
-                    sounds.warpJump();
-                  }}
-                  className="nav-link"
-                  data-cursor-text="GOTO"
-                >
-                  {label}
-                </button>
-              ))}
-            </nav>
-            <div className="flex items-center gap-2">
-              <ThemeToggle
-                theme={theme}
-                onToggle={startToggle}
-                isTransitioning={isTransitioning}
-              />
-              <SoundToggle enabled={soundEnabled} onToggle={toggleSound} />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMenuOpen((open) => !open)}
-                className="h-8 w-8 md:hidden"
-                aria-label={menuOpen ? "Close menu" : "Open menu"}
+      {/* Floating persistent header visible across all sections */}
+      <div className="fixed top-0 left-0 right-0 z-[99999] px-4 pt-4 md:px-8 pointer-events-none">
+        <header className="pointer-events-auto flex h-13 items-center justify-between rounded-2xl border border-border/60 bg-background/85 px-4 shadow-lg shadow-black/5 backdrop-blur-md dark:shadow-black/25 md:px-6">
+          <button
+            className="font-mono text-xs font-bold uppercase tracking-widest cursor-pointer text-foreground"
+            onClick={() => {
+              sounds.navBack();
+              jumpTo("top");
+            }}
+            aria-label="Return to top"
+            data-cursor-text="TOP"
+          >
+            KS / 026
+          </button>
+          <nav className="hidden items-center gap-7 md:flex text-foreground" aria-label="Primary navigation">
+            {sections.map(([id, label]) => (
+              <button
+                key={id}
+                onClick={() => {
+                  sounds.navForward();
+                  jumpTo(id);
+                  setMenuOpen(false);
+                }}
+                className="nav-link"
+                data-cursor-text="GOTO"
               >
-                {menuOpen ? <X /> : <Menu />}
-              </Button>
-            </div>
-          </header>
-        </div>
+                {label}
+              </button>
+            ))}
+          </nav>
+          <div className="flex items-center gap-2">
+            <ThemeToggle
+              theme={theme}
+              onToggle={startToggle}
+              isTransitioning={isTransitioning}
+            />
+            <SoundToggle enabled={soundEnabled} onToggle={handleSoundToggle} />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                setMenuOpen((open) => {
+                  const next = !open;
+                  if (next) sounds.menuOpen();
+                  else sounds.menuClose();
+                  return next;
+                })
+              }
+              className="h-8 w-8 md:hidden text-foreground"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+            >
+              {menuOpen ? <X /> : <Menu />}
+            </Button>
+          </div>
+        </header>
+      </div>
+
+      <main id="main-content">
+        <section id="top" className="hero-section section-shell" data-scroll-section>
         {/* Video background */}
         <video
           className="hero-video-bg"
@@ -433,7 +458,7 @@ function Index() {
               variant="ghost"
               size="lg"
               onClick={() => {
-                sounds.warpJump();
+                sounds.navForward();
                 jumpTo("contact");
               }}
               className="h-12 rounded-none font-mono text-xs uppercase cursor-pointer"
@@ -667,7 +692,7 @@ function Index() {
                   <button
                     type="button"
                     key={skill}
-                    onClick={() => handleTechChipClick(skill)}
+                    onClick={() => handleLoadoutClick(skill)}
                     data-cursor-text="+XP"
                     className="cursor-pointer hover:text-foreground text-muted-foreground transition-colors py-0.5 text-left"
                   >
@@ -701,7 +726,7 @@ function Index() {
               href="https://github.com/MeetKaushikSharma"
               target="_blank"
               rel="noreferrer"
-              onClick={handleExternalClick}
+              onClick={handleGithubIdentityClick}
               className="mt-8 inline-flex items-center gap-2 border-b border-current pb-1 font-mono text-xs uppercase cursor-pointer"
               data-cursor-text="GITHUB"
             >
@@ -720,7 +745,7 @@ function Index() {
               <div
                 key={label}
                 data-cursor-text="LOG"
-                onClick={() => handleTechChipClick(label)}
+                onClick={() => handleTelemetryStatClick(label)}
                 className="cursor-pointer transition-colors hover:bg-muted/40"
               >
                 <strong>{value}</strong>
@@ -816,6 +841,7 @@ function Index() {
         label={collectTarget?.label ?? "EVIDENCE"}
         onDone={handleCollectDone}
       />
-    </main>
+      </main>
+    </>
   );
 }

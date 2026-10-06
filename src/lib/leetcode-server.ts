@@ -26,6 +26,7 @@ export const getLeetCodeSolvedCount = createServerFn({ method: "GET" }).handler(
           Origin: "https://leetcode.com",
           "User-Agent": "Mozilla/5.0",
         },
+        signal: AbortSignal.timeout(2500),
         body: JSON.stringify({
           query:
             "query userProfile($username: String!) { matchedUser(username: $username) { submitStats: submitStatsGlobal { acSubmissionNum { difficulty count } } } }",

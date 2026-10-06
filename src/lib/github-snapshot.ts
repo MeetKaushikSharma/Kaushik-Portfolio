@@ -3,7 +3,7 @@ export const GITHUB_SNAPSHOT = {
   username: "MeetKaushikSharma",
   publicRepos: 16,
   followers: 12,
-  totalCommits: 420,      // sum across all repos, confirmed 2026-10-03
-  topLanguages: 3,        // distinct primary languages across repos
-  confirmedOn: "2026-10-03",
+  totalCommits: 420,      // sum across all repos
+  topLanguages: 7,        // distinct primary languages across repos (JS, Dart, HTML, TS, C, Java, Rust)
+  confirmedOn: "2026-10-06",
 } as const;

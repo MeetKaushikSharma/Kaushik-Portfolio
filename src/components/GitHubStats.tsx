@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getGitHubStats, type GitHubStats } from "@/lib/github-server";
 import { GITHUB_SNAPSHOT } from "@/lib/github-snapshot";
 
-const CACHE_KEY = "gh_stats_meetkaushik";
+const CACHE_KEY = "gh_stats_meetkaushik_v2";
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 min client-side localStorage cache
 
 type Cached = { stats: GitHubStats; savedAt: number };
@@ -36,27 +36,41 @@ function writeCache(stats: GitHubStats) {
   }
 }
 
+let inFlightGhPromise: Promise<GitHubStats> | null = null;
+
+function fetchStatsOnce(): Promise<GitHubStats> {
+  if (!inFlightGhPromise) {
+    inFlightGhPromise = getGitHubStats()
+      .then((data) => {
+        inFlightGhPromise = null;
+        return data;
+      })
+      .catch((err) => {
+        inFlightGhPromise = null;
+        throw err;
+      });
+  }
+  return inFlightGhPromise;
+}
+
 /** Hook that returns live GitHub stats, falling back to snapshot until fetched. */
 export function useGitHubStats(): GitHubStats {
-  const [stats, setStats] = useState<GitHubStats>(SNAPSHOT_STATS);
+  const [stats, setStats] = useState<GitHubStats>(() => readCache() ?? SNAPSHOT_STATS);
 
   useEffect(() => {
-    const cached = readCache();
-    if (cached) setStats(cached);
-
     let cancelled = false;
 
-    getGitHubStats()
+    // Stale-while-revalidate: always fetch fresh stats in background
+    fetchStatsOnce()
       .then((fresh) => {
         if (cancelled) return;
-        // Sanity-check: only accept plausible values
         if (fresh.publicRepos > 0 || fresh.totalCommits > 0) {
           setStats(fresh);
           writeCache(fresh);
         }
       })
       .catch(() => {
-        // Never replace a good value with an error state.
+        // Fallback remains active
       });
 
     return () => {

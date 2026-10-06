@@ -12,7 +12,7 @@ export type GitHubStats = {
   topLanguages: number;
 };
 
-// In-memory server cache (survives across requests within the same worker instance)
+// In-memory server cache
 let cache: { stats: GitHubStats; updatedAt: number } = {
   stats: {
     publicRepos: GITHUB_SNAPSHOT.publicRepos,
@@ -31,9 +31,12 @@ function ghHeaders() {
   };
 }
 
-async function fetchWithFallback<T>(url: string, fallback: T): Promise<T> {
+async function fetchWithFallback<T>(url: string, fallback: T, timeoutMs = 5000): Promise<T> {
   try {
-    const res = await fetch(url, { headers: ghHeaders() });
+    const res = await fetch(url, {
+      headers: ghHeaders(),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
     if (!res.ok) return fallback;
     return (await res.json()) as T;
   } catch {
@@ -41,63 +44,47 @@ async function fetchWithFallback<T>(url: string, fallback: T): Promise<T> {
   }
 }
 
-async function getTotalCommits(repos: Array<{ name: string; fork: boolean }>): Promise<number> {
-  const ownRepos = repos.filter((r) => !r.fork).slice(0, 20); // cap API calls
-
-  const counts = await Promise.all(
-    ownRepos.map(async (repo) => {
-      type Contributor = { login: string; contributions: number };
-      const contributors = await fetchWithFallback<Contributor[]>(
-        `${GH_API}/repos/${USERNAME}/${repo.name}/contributors?per_page=100`,
-        [],
-      );
-      const mine = contributors.find((c) => c.login.toLowerCase() === USERNAME.toLowerCase());
-      return mine?.contributions ?? 0;
-    }),
-  );
-
-  return counts.reduce((sum, n) => sum + n, 0);
-}
-
 export const getGitHubStats = createServerFn({ method: "GET" }).handler(
   async (): Promise<GitHubStats> => {
     if (Date.now() - cache.updatedAt < CACHE_MS) return cache.stats;
 
     try {
-      // 1. User profile
-      type GHUser = { public_repos: number; followers: number };
-      const user = await fetchWithFallback<GHUser>(
+      // 1. User profile (fast single fetch)
+      type GHUser = { public_repos?: number; followers?: number };
+      const userPromise = fetchWithFallback<GHUser>(
         `${GH_API}/users/${USERNAME}`,
         { public_repos: cache.stats.publicRepos, followers: cache.stats.followers },
+        5000,
       );
 
-      // 2. All public repos (for commit counts + language diversity)
+      // 2. Public repos for language diversity and count
       type GHRepo = { name: string; fork: boolean; language: string | null };
-      const repos = await fetchWithFallback<GHRepo[]>(
+      const reposPromise = fetchWithFallback<GHRepo[]>(
         `${GH_API}/users/${USERNAME}/repos?per_page=100&type=public`,
         [],
+        5000,
       );
 
-      // 3. Total commits across own repos (contributor API)
-      const totalCommits = repos.length > 0
-        ? await getTotalCommits(repos)
-        : cache.stats.totalCommits;
+      const [user, repos] = await Promise.all([userPromise, reposPromise]);
 
-      // 4. Distinct primary languages
       const languages = new Set(
-        repos.filter((r) => r.language).map((r) => r.language as string),
+        repos.filter((r) => r && r.language).map((r) => r.language as string),
       );
 
       const fresh: GitHubStats = {
-        publicRepos: user.public_repos,
-        followers: user.followers,
-        totalCommits: totalCommits > 0 ? totalCommits : cache.stats.totalCommits,
-        topLanguages: languages.size > 0 ? languages.size : cache.stats.topLanguages,
+        publicRepos:
+          typeof user.public_repos === "number" && user.public_repos > 0
+            ? user.public_repos
+            : cache.stats.publicRepos,
+        followers:
+          typeof user.followers === "number" ? user.followers : cache.stats.followers,
+        totalCommits: GITHUB_SNAPSHOT.totalCommits,
+        topLanguages: languages.size > 0 ? languages.size : GITHUB_SNAPSHOT.topLanguages,
       };
 
       cache = { stats: fresh, updatedAt: Date.now() };
     } catch {
-      // Keep last known good values — never surface an error state.
+      // Retain last known good values
     }
 
     return cache.stats;

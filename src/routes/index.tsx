@@ -192,8 +192,6 @@ function Index() {
 
   function handleEnterProtocol() {
     sounds.protocolEngage();
-    setCollecting(true);
-    setCollectTarget({ x: 0.5, y: 0.45, label: "PROTOCOL ENGAGED" });
     setProtocol((current) => {
       const updated = toggleStage(current, "hero");
       return collectEvidence(updated, 1);
@@ -437,7 +435,7 @@ function Index() {
             <button
               key={id}
               className="mission-row group"
-              onClick={() => jumpTo(id)}
+              onClick={() => { sounds.navForward(); jumpTo(id); }}
               data-cursor-text="MISSION"
             >
               <span className="font-mono text-xs">0{index + 1}</span>

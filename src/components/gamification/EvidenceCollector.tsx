@@ -94,15 +94,17 @@ export function EvidenceCollector({
         ctx.fill();
       }
 
-      // Draw a label at the target
-      ctx.font = "600 10px 'IBM Plex Mono', monospace";
-      ctx.fillStyle = "rgba(255,255,255,0.7)";
-      ctx.textAlign = "center";
-      ctx.fillText(
-        label,
-        canvas.width * targetX,
-        canvas.height * targetY - 18
-      );
+      // Draw a label at the target if provided
+      if (label && label.trim().length > 0) {
+        ctx.font = "600 10px 'IBM Plex Mono', monospace";
+        ctx.fillStyle = "rgba(255,255,255,0.7)";
+        ctx.textAlign = "center";
+        ctx.fillText(
+          label,
+          canvas.width * targetX,
+          canvas.height * targetY - 18
+        );
+      }
 
       if (particlesRef.current.length > 0) {
         rafRef.current = requestAnimationFrame(tick);

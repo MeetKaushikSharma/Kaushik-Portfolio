@@ -123,6 +123,7 @@ interface ToneOptions {
   gain: number;
   start?: number;
   duration: number;
+  attack?: number;
   filterFreq?: number;
   filterType?: BiquadFilterType;
   q?: number;
@@ -136,6 +137,7 @@ function playPureTone(opts: ToneOptions) {
   const schedule = () => {
     const now = ctx.currentTime + (opts.start || 0);
     const dur = opts.duration;
+    const attack = opts.attack ?? 0.008;
 
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -147,7 +149,7 @@ function playPureTone(opts: ToneOptions) {
     }
 
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(opts.gain, now + 0.004);
+    gain.gain.linearRampToValueAtTime(opts.gain, now + attack);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
 
     if (opts.filterFreq) {
@@ -172,6 +174,77 @@ function playPureTone(opts: ToneOptions) {
         gain.disconnect();
       } catch {}
     }, (dur + (opts.start || 0) + 0.1) * 1000);
+  };
+
+  if (ctx.state === "suspended") {
+    ctx.resume().then(() => schedule()).catch(() => {});
+  } else {
+    schedule();
+  }
+}
+
+function playWarmChime(freq: number, gain = 0.03, duration = 0.35, start = 0, harmonic = true) {
+  playPureTone({
+    freq,
+    type: "sine",
+    gain,
+    start,
+    duration,
+    attack: 0.008,
+  });
+  if (harmonic) {
+    playPureTone({
+      freq: freq * 2,
+      type: "sine",
+      gain: gain * 0.18,
+      start: start + 0.004,
+      duration: duration * 0.55,
+      attack: 0.006,
+    });
+  }
+}
+
+function playSoftOrganicTap(pitch = 440, weight = 1.0) {
+  const env = getAudioEnv();
+  if (!env) return;
+  const { ctx, master } = env;
+
+  const schedule = () => {
+    const now = ctx.currentTime;
+
+    // Gentle tactile body (soft, warm marimba-like resonance)
+    const osc = ctx.createOscillator();
+    const oscGain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(pitch, now);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(pitch * 0.45, 40), now + 0.035);
+
+    oscGain.gain.setValueAtTime(0.035 * weight, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
+
+    osc.connect(oscGain);
+    oscGain.connect(master);
+    osc.start(now);
+    osc.stop(now + 0.04);
+
+    // Subtle velvet whisper
+    const noise = ctx.createBufferSource();
+    noise.buffer = getPrecomputedNoise(ctx);
+
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = "bandpass";
+    noiseFilter.frequency.setValueAtTime(800, now);
+    noiseFilter.Q.setValueAtTime(1.2, now);
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.012 * weight, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.018);
+
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(master);
+    noise.start(now);
+    noise.stop(now + 0.022);
   };
 
   if (ctx.state === "suspended") {
@@ -236,371 +309,163 @@ function playAtmosphericSweep(options: {
   }
 }
 
-function playTexturedClick(pitch = 1800, weight = 1.0) {
-  const env = getAudioEnv();
-  if (!env) return;
-  const { ctx, master } = env;
-
-  const schedule = () => {
-    const now = ctx.currentTime;
-
-    // 1. Transient snap from precomputed buffer (instant!)
-    const noise = ctx.createBufferSource();
-    noise.buffer = getPrecomputedNoise(ctx);
-
-    const noiseFilter = ctx.createBiquadFilter();
-    noiseFilter.type = "bandpass";
-    noiseFilter.frequency.setValueAtTime(pitch, now);
-    noiseFilter.Q.setValueAtTime(2.2, now);
-
-    const noiseGain = ctx.createGain();
-    noiseGain.gain.setValueAtTime(0.05 * weight, now);
-    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.015);
-
-    noise.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
-    noiseGain.connect(master);
-    noise.start(now);
-    noise.stop(now + 0.02);
-
-    // 2. Tactile thud body
-    const osc = ctx.createOscillator();
-    const oscGain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(140, now);
-    osc.frequency.exponentialRampToValueAtTime(45, now + 0.035);
-
-    oscGain.gain.setValueAtTime(0.07 * weight, now);
-    oscGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
-
-    osc.connect(oscGain);
-    oscGain.connect(master);
-    osc.start(now);
-    osc.stop(now + 0.04);
-  };
-
-  if (ctx.state === "suspended") {
-    ctx.resume().then(() => schedule()).catch(() => {});
-  } else {
-    schedule();
-  }
+function playTexturedClick(pitch = 500, weight = 0.8) {
+  playSoftOrganicTap(pitch, weight);
 }
 
 // ─── Semantic Sound Library ──────────────────────────────────────────────────
 
 const SOUND_LIBRARY = {
+  // Generic UI tap — gentle marimba-like soft pluck
   click: () => {
-    playTexturedClick(2200, 1.0);
+    playSoftOrganicTap(480, 0.75);
+    playWarmChime(960, 0.012, 0.22, 0.005, false);
   },
 
+  // Project/Achievement tab switch — soft two-note chime (C5 → E5 interval)
   tabSwitch: () => {
-    playTexturedClick(1600, 0.7);
-    playPureTone({
-      freq: 580,
-      freqEnd: 320,
-      type: "sine",
-      gain: 0.035,
-      duration: 0.06,
-    });
+    playWarmChime(523.25, 0.028, 0.30, 0.0);
+    playWarmChime(659.25, 0.022, 0.28, 0.065);
   },
 
+  // Loadout / skill chip equip — warm three-tone ascending (pentatonic, like wind chimes)
   loadoutEquip: () => {
-    playTexturedClick(2800, 0.85);
-    playPureTone({
-      freq: 720,
-      freqEnd: 1080,
-      type: "triangle",
-      gain: 0.05,
-      duration: 0.07,
-    });
-    playPureTone({
-      freq: 1440,
-      type: "sine",
-      gain: 0.035,
-      start: 0.02,
-      duration: 0.16,
-    });
-    playPureTone({
-      freq: 180,
-      freqEnd: 60,
-      type: "sine",
-      gain: 0.04,
-      duration: 0.05,
-    });
+    playWarmChime(392.00, 0.025, 0.32, 0.00);
+    playWarmChime(523.25, 0.022, 0.30, 0.07);
+    playWarmChime(659.25, 0.018, 0.28, 0.14);
   },
 
+  // GitHub / telemetry stat click — delicate crystal ping with harmonic shimmer
   telemetryScan: () => {
-    playPureTone({ freq: 1760, type: "square", gain: 0.025, start: 0.00, duration: 0.03 });
-    playPureTone({ freq: 2200, type: "triangle", gain: 0.035, start: 0.03, duration: 0.035 });
+    playWarmChime(1046.5, 0.025, 0.38, 0.0);
+    playWarmChime(1318.51, 0.018, 0.32, 0.06);
     playPureTone({
       freq: 880,
-      freqEnd: 1568,
+      freqEnd: 880,
       type: "sine",
-      gain: 0.04,
-      start: 0.05,
-      duration: 0.12,
-    });
-    playPureTone({
-      freq: 1046.5,
-      type: "sine",
-      gain: 0.05,
-      start: 0.12,
-      duration: 0.28,
-    });
-    playPureTone({
-      freq: 2093.0,
-      type: "sine",
-      gain: 0.02,
-      start: 0.13,
-      duration: 0.22,
+      gain: 0.015,
+      start: 0.0,
+      duration: 0.48,
+      attack: 0.015,
     });
   },
 
+  // Navigate to section — soft two-tone ascending (like a calm door chime)
   navForward: () => {
-    playPureTone({
-      freq: 480,
-      freqEnd: 180,
-      type: "sine",
-      gain: 0.045,
-      duration: 0.16,
-    });
-    playPureTone({
-      freq: 960,
-      freqEnd: 360,
-      type: "triangle",
-      gain: 0.018,
-      duration: 0.12,
-      start: 0.01,
-    });
+    playWarmChime(523.25, 0.028, 0.22, 0.0);
+    playWarmChime(659.25, 0.022, 0.20, 0.08);
   },
 
+  // Back to top — gentle two-tone descending
   navBack: () => {
-    playPureTone({
-      freq: 220,
-      freqEnd: 540,
-      type: "sine",
-      gain: 0.045,
-      duration: 0.16,
-    });
-    playPureTone({
-      freq: 440,
-      freqEnd: 1080,
-      type: "triangle",
-      gain: 0.018,
-      duration: 0.12,
-      start: 0.01,
-    });
+    playWarmChime(659.25, 0.026, 0.20, 0.0);
+    playWarmChime(523.25, 0.020, 0.22, 0.08);
   },
 
+  // Mobile menu open — gentle unfolding (soft wind-chime arpeggio)
   menuOpen: () => {
-    playTexturedClick(1200, 0.6);
-    playPureTone({ freq: 261.63, freqEnd: 329.63, type: "sine", gain: 0.04, duration: 0.18 });
-    playPureTone({ freq: 392.00, freqEnd: 493.88, type: "sine", gain: 0.03, duration: 0.22, start: 0.03 });
-    playPureTone({ freq: 523.25, freqEnd: 659.25, type: "triangle", gain: 0.025, duration: 0.25, start: 0.06 });
+    playWarmChime(392.00, 0.022, 0.26, 0.00);
+    playWarmChime(523.25, 0.018, 0.24, 0.06);
+    playWarmChime(659.25, 0.015, 0.22, 0.12);
   },
 
+  // Mobile menu close — soft single descend
   menuClose: () => {
-    playTexturedClick(800, 0.5);
-    playPureTone({ freq: 523.25, freqEnd: 261.63, type: "sine", gain: 0.04, duration: 0.15 });
+    playWarmChime(523.25, 0.022, 0.24, 0.0);
+    playWarmChime(392.00, 0.016, 0.20, 0.07);
   },
 
+  // Evidence particles collect — sparkle cascade (high harmonic chimes)
   collect: () => {
-    const notes = [1046.5, 1318.51, 1567.98, 2093.0];
-    notes.forEach((f, i) => {
-      playPureTone({
-        freq: f,
-        freqEnd: f * 1.03,
-        type: "sine",
-        gain: 0.035 - i * 0.005,
-        start: i * 0.045,
-        duration: 0.24,
-      });
-      playPureTone({
-        freq: f * 2,
-        type: "triangle",
-        gain: 0.012,
-        start: i * 0.045,
-        duration: 0.12,
-      });
+    const sparkles = [
+      { f: 1318.51, delay: 0.00, g: 0.020, dur: 0.28 },
+      { f: 1567.98, delay: 0.04, g: 0.018, dur: 0.26 },
+      { f: 1760.00, delay: 0.09, g: 0.016, dur: 0.24 },
+      { f: 2093.00, delay: 0.14, g: 0.013, dur: 0.22 },
+    ];
+    sparkles.forEach(({ f, delay, g, dur }) => {
+      playPureTone({ freq: f, type: "sine", gain: g, start: delay, duration: dur, attack: 0.006 });
     });
   },
 
+  // Stage unlock (unused in UI but kept) — calm ascending minor chord bloom
   unlock: () => {
     const chord = [
-      { f: 523.25, delay: 0.00, dur: 0.35, g: 0.05 },
-      { f: 659.25, delay: 0.08, dur: 0.40, g: 0.05 },
-      { f: 783.99, delay: 0.16, dur: 0.45, g: 0.055 },
-      { f: 1046.5, delay: 0.24, dur: 0.55, g: 0.06 },
-      { f: 1567.98, delay: 0.34, dur: 0.70, g: 0.04 },
+      { f: 392.00, delay: 0.00, dur: 0.50, g: 0.030 },
+      { f: 493.88, delay: 0.08, dur: 0.55, g: 0.028 },
+      { f: 587.33, delay: 0.16, dur: 0.60, g: 0.025 },
+      { f: 783.99, delay: 0.26, dur: 0.70, g: 0.022 },
     ];
-
     chord.forEach((n) => {
-      playPureTone({
-        freq: n.f,
-        type: "sine",
-        gain: n.g,
-        start: n.delay,
-        duration: n.dur,
-      });
-      playPureTone({
-        freq: n.f * 1.5,
-        type: "triangle",
-        gain: n.g * 0.3,
-        start: n.delay + 0.02,
-        duration: n.dur * 0.7,
-      });
+      playPureTone({ freq: n.f, type: "sine", gain: n.g, start: n.delay, duration: n.dur, attack: 0.015 });
     });
   },
 
+  // View resume / dossier reveal — gentle paper-flip shimmer then warm confirmation
   dossierReveal: () => {
-    for (let i = 0; i < 4; i++) {
-      playPureTone({
-        freq: 1800 + i * 220,
-        type: "triangle",
-        gain: 0.03,
-        start: i * 0.03,
-        duration: 0.025,
-      });
-    }
-    playPureTone({
-      freq: 880,
-      freqEnd: 1174.66,
-      type: "sine",
-      gain: 0.05,
-      start: 0.15,
-      duration: 0.32,
+    // Soft shimmer of three quick high tones (like pages turning)
+    [0, 0.04, 0.08].forEach((delay, i) => {
+      playPureTone({ freq: 1200 + i * 160, type: "sine", gain: 0.018, start: delay, duration: 0.06, attack: 0.005 });
     });
-    playPureTone({
-      freq: 1760,
-      type: "sine",
-      gain: 0.025,
-      start: 0.20,
-      duration: 0.40,
-    });
+    // Warm confirming chord
+    playWarmChime(523.25, 0.032, 0.40, 0.14);
+    playWarmChime(659.25, 0.024, 0.38, 0.21);
+    playWarmChime(783.99, 0.018, 0.36, 0.28);
   },
 
+  // Enter protocol button — grounded, calm engagement (low bowl resonance + ascending shimmer)
   protocolEngage: () => {
-    playPureTone({
-      freq: 70,
-      freqEnd: 240,
-      type: "sine",
-      gain: 0.08,
-      duration: 0.24,
-    });
-    playPureTone({
-      freq: 320,
-      freqEnd: 880,
-      type: "triangle",
-      gain: 0.045,
-      start: 0.12,
-      duration: 0.22,
-    });
-    playTexturedClick(2400, 1.2);
+    // Soft sub-bass foundation (warm singing bowl)
+    playPureTone({ freq: 110, freqEnd: 165, type: "sine", gain: 0.045, duration: 0.60, attack: 0.025 });
+    // Gentle ascending harmonic glide
+    playWarmChime(440,    0.025, 0.45, 0.08);
+    playWarmChime(554.37, 0.020, 0.42, 0.20);
+    playWarmChime(659.25, 0.016, 0.38, 0.32);
   },
 
+  // Switch to light theme — airy morning birdsong (bright, sparse, gentle)
   themeLight: () => {
-    playAtmosphericSweep({
-      startFreq: 280,
-      endFreq: 1400,
-      gain: 0.035,
-      duration: 0.70,
-      q: 1.4,
-    });
-
-    playPureTone({ freq: 130.81, freqEnd: 164.81, type: "sine", gain: 0.05, duration: 0.55 });
-    playPureTone({ freq: 196.00, freqEnd: 246.94, type: "sine", gain: 0.04, start: 0.05, duration: 0.50 });
-    playPureTone({ freq: 329.63, freqEnd: 392.00, type: "triangle", gain: 0.035, start: 0.10, duration: 0.48 });
-    playPureTone({ freq: 493.88, type: "sine", gain: 0.03, start: 0.16, duration: 0.42 });
-    playPureTone({ freq: 587.33, type: "sine", gain: 0.025, start: 0.22, duration: 0.38 });
-
-    const sunChimes = [
-      { f: 783.99, delay: 0.12, dur: 0.35, g: 0.04 },
-      { f: 1046.50, delay: 0.20, dur: 0.40, g: 0.045 },
-      { f: 1318.51, delay: 0.28, dur: 0.45, g: 0.05 },
-      { f: 1760.00, delay: 0.36, dur: 0.50, g: 0.04 },
-      { f: 2093.00, delay: 0.45, dur: 0.65, g: 0.045 },
-      { f: 2637.02, delay: 0.48, dur: 0.60, g: 0.025 },
+    // Rising breath-like noise sweep
+    playAtmosphericSweep({ startFreq: 350, endFreq: 1800, gain: 0.022, duration: 0.75, q: 1.2 });
+    // Pentatonic sunrise chime cascade
+    const dawn = [
+      { f: 523.25, delay: 0.04, dur: 0.55, g: 0.028 },
+      { f: 659.25, delay: 0.12, dur: 0.50, g: 0.026 },
+      { f: 783.99, delay: 0.20, dur: 0.48, g: 0.024 },
+      { f: 1046.5, delay: 0.28, dur: 0.55, g: 0.022 },
+      { f: 1318.51, delay: 0.38, dur: 0.60, g: 0.018 },
+      { f: 1567.98, delay: 0.46, dur: 0.65, g: 0.014 },
     ];
-
-    sunChimes.forEach((c) => {
-      playPureTone({
-        freq: c.f,
-        type: "sine",
-        gain: c.g,
-        start: c.delay,
-        duration: c.dur,
-      });
-      playPureTone({
-        freq: c.f * 1.5,
-        type: "triangle",
-        gain: c.g * 0.28,
-        start: c.delay + 0.01,
-        duration: c.dur * 0.65,
-      });
+    dawn.forEach(({ f, delay, dur, g }) => {
+      playWarmChime(f, g, dur, delay);
     });
-
-    playPureTone({
-      freq: 3135.96,
-      type: "sine",
-      gain: 0.02,
-      start: 0.48,
-      duration: 0.55,
-    });
+    // Gentle high shimmer finish
+    playPureTone({ freq: 2093.00, type: "sine", gain: 0.012, start: 0.55, duration: 0.50, attack: 0.018 });
   },
 
+  // Switch to dark theme — deep tranquil settling (nightfall bowl-like descent)
   themeDark: () => {
-    playAtmosphericSweep({
-      startFreq: 1200,
-      endFreq: 160,
-      gain: 0.04,
-      duration: 0.80,
-      q: 1.6,
-      filterType: "lowpass",
-    });
-
-    playPureTone({
-      freq: 130,
-      freqEnd: 46,
-      type: "sine",
-      gain: 0.075,
-      duration: 0.70,
-    });
-    playPureTone({
-      freq: 65,
-      freqEnd: 32,
-      type: "triangle",
-      gain: 0.035,
-      start: 0.05,
-      duration: 0.65,
-    });
-
-    playPureTone({ freq: 146.83, type: "sine", gain: 0.045, start: 0.08, duration: 0.60 });
-    playPureTone({ freq: 220.00, type: "sine", gain: 0.04, start: 0.15, duration: 0.55 });
-    playPureTone({ freq: 349.23, type: "triangle", gain: 0.035, start: 0.22, duration: 0.50 });
-    playPureTone({ freq: 523.25, type: "sine", gain: 0.03, start: 0.30, duration: 0.48 });
-    playPureTone({ freq: 783.99, type: "sine", gain: 0.025, start: 0.38, duration: 0.45 });
-
-    const starPings = [
-      { f: 1318.51, delay: 0.22, dur: 0.40, g: 0.03 },
-      { f: 1975.53, delay: 0.34, dur: 0.45, g: 0.035 },
-      { f: 2637.02, delay: 0.48, dur: 0.60, g: 0.03 },
-      { f: 3520.00, delay: 0.52, dur: 0.50, g: 0.018 },
+    // Downward breath-like noise sweep
+    playAtmosphericSweep({ startFreq: 1400, endFreq: 200, gain: 0.025, duration: 0.85, q: 1.5, filterType: "lowpass" });
+    // Deep warm bass settle
+    playPureTone({ freq: 110, freqEnd: 55,  type: "sine", gain: 0.048, duration: 0.80, attack: 0.030 });
+    playPureTone({ freq: 165, freqEnd: 110, type: "sine", gain: 0.032, duration: 0.75, start: 0.06, attack: 0.025 });
+    // Distant star-like crystalline pings (sparse, long decay)
+    const stars = [
+      { f: 659.25,  delay: 0.14, dur: 0.60, g: 0.018 },
+      { f: 783.99,  delay: 0.28, dur: 0.65, g: 0.015 },
+      { f: 1046.5,  delay: 0.42, dur: 0.70, g: 0.012 },
+      { f: 1318.51, delay: 0.55, dur: 0.75, g: 0.009 },
     ];
-
-    starPings.forEach((s) => {
-      playPureTone({
-        freq: s.f,
-        type: "sine",
-        gain: s.g,
-        start: s.delay,
-        duration: s.dur,
-      });
+    stars.forEach(({ f, delay, dur, g }) => {
+      playPureTone({ freq: f, type: "sine", gain: g, start: delay, duration: dur, attack: 0.018 });
     });
   },
 
+  // Audio re-enabled confirmation — soft confirmation chime (two-note bell)
   soundOn: () => {
-    playTexturedClick(1800, 0.8);
-    playPureTone({ freq: 440, freqEnd: 659.25, type: "sine", gain: 0.05, start: 0.03, duration: 0.16 });
+    playWarmChime(523.25, 0.030, 0.28, 0.0);
+    playWarmChime(783.99, 0.024, 0.32, 0.09);
   },
 
   // Aliases

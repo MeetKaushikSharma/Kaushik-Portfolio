@@ -84,10 +84,6 @@ const stageToSection: Record<StageId, string> = {
   evidence: "evidence",
 };
 
-function jumpTo(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
 type StatRow = [label: string, value: ReactNode];
 
 function Index() {
@@ -117,7 +113,23 @@ function Index() {
   );
 
   // Initialise Lenis smooth scroll + GSAP ScrollTrigger animations
-  useKineticScroll();
+  const lenisRef = useKineticScroll();
+
+  // Reliable scroll helper — uses Lenis.scrollTo() when available,
+  // falls back to scrollIntoView, retries once after 120ms if el not ready
+  function jumpTo(id: string, attempt = 0) {
+    const el = document.getElementById(id);
+    if (!el) {
+      if (attempt < 3) setTimeout(() => jumpTo(id, attempt + 1), 120);
+      return;
+    }
+    const lenis = lenisRef.current;
+    if (lenis) {
+      lenis.scrollTo(el, { offset: 0, duration: 1.2, easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+    } else {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
 
   // Hydrate saved protocol state from localStorage cleanly on client
   useEffect(() => {
@@ -196,9 +208,7 @@ function Index() {
       const updated = toggleStage(current, "hero");
       return collectEvidence(updated, 1);
     });
-    setTimeout(() => {
-      jumpTo("mission-control");
-    }, 180);
+    jumpTo("mission-control");
   }
 
   function handleViewResume(e: React.MouseEvent) {
